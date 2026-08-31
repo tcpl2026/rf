@@ -1,0 +1,453 @@
+*** Keywords ***
+wpa_cli ccmp
+    [Arguments]        ${interface}    ${ssid}    ${passphrase}
+
+    Execute Command    sudo ${wpa_cli} -i ${interface} remove_network all
+    Execute Command    sudo ${wpa_cli} -i ${interface} add_network
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ssid \\"${ssid}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 psk \\"${passphrase}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} enable_network 0
+
+wpa_cli ccmp256
+    [Arguments]        ${interface}    ${ssid}    ${passphrase}
+
+    Execute Command    sudo ${wpa_cli} -i ${interface} remove_network all
+    Execute Command    sudo ${wpa_cli} -i ${interface} add_network
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ssid \\"${ssid}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 psk \\"${passphrase}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 proto WPA2
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 key_mgmt WPA-PSK
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 pairwise CCMP-256
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 group CCMP-256
+    Execute Command    sudo ${wpa_cli} -i ${interface} enable_network 0
+
+staut connection to aput
+    [Arguments]     ${security}    ${ssid}
+    staut bash shell
+    wpa_cli ccmp    ${staut_wifi_interface}    ${ssid}    ${passphrase}
+
+    staut wait wifi connected
+
+wpa_cli ccmppmfc
+    [Arguments]        ${interface}    ${ssid}    ${passphrase}
+
+    Execute Command    sudo ${wpa_cli} -i ${interface} remove_network all
+    Execute Command    sudo ${wpa_cli} -i ${interface} add_network
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ssid \\"${ssid}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 psk \\"${passphrase}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 proto WPA2
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 key_mgmt WPA-PSK WPA-PSK-SHA256
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 pairwise CCMP
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 group CCMP
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ieee80211w 1
+    Execute Command    sudo ${wpa_cli} -i ${interface} enable_network 0
+
+staut ccmppmfc connection to aput
+    [Arguments]     ${ssid}
+    staut bash shell
+    wpa_cli ccmppmfc    ${staut_wifi_interface}    ${ssid}    ${passphrase}
+
+    staut wait wifi connected
+
+wpa_cli ccmppmfr
+    [Arguments]        ${interface}    ${ssid}    ${passphrase}
+
+    Execute Command    sudo ${wpa_cli} -i ${interface} remove_network all
+    Execute Command    sudo ${wpa_cli} -i ${interface} add_network
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ssid \\"${ssid}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 psk \\"${passphrase}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 proto WPA2
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 key_mgmt WPA-PSK WPA-PSK-SHA256
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 pairwise CCMP
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 group CCMP
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ieee80211w 2
+    Execute Command    sudo ${wpa_cli} -i ${interface} enable_network 0
+
+staut ccmppmfr connection to aput
+    [Arguments]     ${ssid}
+    staut bash shell
+    wpa_cli ccmppmfr    ${staut_wifi_interface}    ${ssid}    ${passphrase}
+
+    staut wait wifi connected
+
+wpa_cli ccmpwpa3pmfr
+    [Arguments]        ${interface}    ${ssid}    ${passphrase}
+
+    Execute Command    sudo ${wpa_cli} -i ${interface} remove_network all
+    Execute Command    sudo ${wpa_cli} -i ${interface} add_network
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ssid \\"${ssid}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 psk \\"${passphrase}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 proto WPA2
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 key_mgmt SAE
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 pairwise CCMP
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 group CCMP
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ieee80211w 2
+    Execute Command    sudo ${wpa_cli} -i ${interface} enable_network 0
+
+staut ccmpwpa3pmfr connection to aput
+    [Arguments]     ${ssid}
+    staut bash shell
+    wpa_cli ccmpwpa3pmfr    ${staut_wifi_interface}    ${ssid}    ${passphrase}
+
+    staut wait wifi connected
+
+wpa_cli ccmpwpa3pmfc
+    [Arguments]        ${interface}    ${ssid}    ${passphrase}
+
+    Execute Command    sudo ${wpa_cli} -i ${interface} remove_network all
+    Execute Command    sudo ${wpa_cli} -i ${interface} add_network
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ssid \\"${ssid}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 psk \\"${passphrase}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 proto WPA2
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 key_mgmt SAE
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 pairwise CCMP
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 group CCMP
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ieee80211w 1
+    Execute Command    sudo ${wpa_cli} -i ${interface} enable_network 0
+
+staut ccmpwpa3pmfc connection to aput
+    [Arguments]     ${ssid}
+    staut bash shell
+    wpa_cli ccmpwpa3pmfc    ${staut_wifi_interface}    ${ssid}    ${passphrase}
+
+    staut wait wifi connected
+
+wpa_cli tkip
+    [Arguments]        ${interface}    ${ssid}    ${passphrase}
+
+    Execute Command    sudo ${wpa_cli} -i ${interface} remove_network all
+    Execute Command    sudo ${wpa_cli} -i ${interface} add_network
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ssid \\"${ssid}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 psk \\"${passphrase}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 proto WPA
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 key_mgmt WPA-PSK
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 pairwise TKIP
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 group TKIP
+    Execute Command    sudo ${wpa_cli} -i ${interface} enable_network 0
+
+staut tkip connection to aput
+    [Arguments]     ${ssid}
+    staut bash shell
+    wpa_cli tkip    ${staut_wifi_interface}    ${ssid}    ${passphrase}
+
+    staut wait wifi connected
+
+wpa_cli wep
+    [Arguments]        ${interface}    ${ssid}    ${authmode}    ${wepmode}    ${wepindex}
+
+    ${index}=          Evaluate        ${wepindex} - 1
+    Execute Command    sudo ${wpa_cli} -i ${interface} remove_network all
+    Execute Command    sudo ${wpa_cli} -i ${interface} add_network
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ssid \\"${ssid}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 key_mgmt NONE
+    IF                 '${wepmode}' == 'wep64'
+                       Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 wep_key${index} ${wep64key}
+    ELSE IF            '${wepmode}' == 'wep128'
+                       Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 wep_key${index} ${wep128key}
+    END
+
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 wep_tx_keyidx ${index}
+    IF                 '${authmode}' == 'open'
+                       Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 auth_alg OPEN
+    ELSE IF            '${authmode}' == 'shared'
+                       Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 auth_alg SHARED
+    END
+    Execute Command    sudo ${wpa_cli} -i ${interface} enable_network 0
+
+staut wep connection to aput
+    [Arguments]        ${ssid}    ${authmode}    ${wepmode}    ${wepindex}
+    staut bash shell
+    wpa_cli wep        ${staut_wifi_interface}    ${ssid}    ${authmode}    ${wepmode}    ${wepindex}
+
+    staut wait wifi connected
+
+staut ccmp256 connection to sta1 sap
+    staut bash shell
+    wpa_cli ccmp256    ${staut_wifi_interface}    ${sta1_sap_ssid}    ${sta1_sap_passphrase}
+
+    staut wait wifi connected
+
+wpa_cli owe
+    [Arguments]        ${interface}    ${ssid}
+
+    Execute Command    sudo ${wpa_cli} -i ${interface} remove_network all
+    Execute Command    sudo ${wpa_cli} -i ${interface} add_network
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ssid \\"${ssid}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 proto WPA2
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 key_mgmt OWE
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 pairwise CCMP
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 group CCMP
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ieee80211w 2
+    Execute Command    sudo ${wpa_cli} -i ${interface} enable_network 0
+
+staut owe connection to sta1 sap
+    staut bash shell
+    wpa_cli owe    ${staut_wifi_interface}    ${sta1_sap_ssid}
+
+    staut wait wifi connected
+
+wpa_cli owehidden
+    [Arguments]        ${interface}    ${ssid}
+
+    Execute Command    sudo ${wpa_cli} -i ${interface} remove_network all
+    Execute Command    sudo ${wpa_cli} -i ${interface} add_network
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ssid \\"${ssid}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 proto WPA2
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 key_mgmt OWE
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 pairwise CCMP
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 group CCMP
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ieee80211w 2
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 scan_ssid 1
+    Execute Command    sudo ${wpa_cli} -i ${interface} enable_network 0
+
+staut owehidden connection to sta1 sap
+    staut bash shell
+    wpa_cli owehidden    ${staut_wifi_interface}    ${sta1_sap_ssid}
+
+    staut wait wifi connected
+
+wpa_cli wpa3ccmp
+    [Arguments]        ${interface}    ${ssid}    ${passphrase}
+
+    Execute Command    sudo ${wpa_cli} -i ${interface} remove_network all
+    Execute Command    sudo ${wpa_cli} -i ${interface} add_network
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ssid \\"${ssid}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 proto WPA2
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 key_mgmt SAE
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 pairwise CCMP
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 group CCMP
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 psk \\"${passphrase}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ieee80211w 2
+    Execute Command    sudo ${wpa_cli} -i ${interface} enable_network 0
+
+staut wpa3ccmp connection to sta1 sap
+    staut bash shell
+    wpa_cli wpa3ccmp    ${staut_wifi_interface}    ${sta1_sap_ssid}    ${sta1_sap_passphrase}
+
+    staut wait wifi connected
+
+wpa_cli wpa3ccmphidden
+    [Arguments]        ${interface}    ${ssid}    ${passphrase}
+
+    Execute Command    sudo ${wpa_cli} -i ${interface} remove_network all
+    Execute Command    sudo ${wpa_cli} -i ${interface} add_network
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ssid \\"${ssid}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 proto WPA2
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 key_mgmt SAE
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 pairwise CCMP
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 group CCMP
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 psk \\"${passphrase}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ieee80211w 2
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 scan_ssid 1
+    Execute Command    sudo ${wpa_cli} -i ${interface} enable_network 0
+
+staut wpa3ccmphidden connection to sta1 sap
+    staut bash shell
+    wpa_cli wpa3ccmphidden    ${staut_wifi_interface}    ${sta1_sap_ssid}    ${sta1_sap_passphrase}
+
+    staut wait wifi connected
+
+wpa_cli wpa3gcmp256
+    [Arguments]        ${interface}    ${ssid}    ${passphrase}
+
+    Execute Command    sudo ${wpa_cli} -i ${interface} remove_network all
+    Execute Command    sudo ${wpa_cli} -i ${interface} add_network
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ssid \\"${ssid}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 proto WPA2
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 key_mgmt SAE
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 pairwise GCMP-256
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 group GCMP-256
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 psk \\"${passphrase}\\"
+    Execute Command    sudo ${wpa_cli} -i ${interface} set_network 0 ieee80211w 2
+    Execute Command    sudo ${wpa_cli} -i ${interface} enable_network 0
+
+staut wpa3gcmp256 connection to sta1 sap
+    staut bash shell
+    wpa_cli wpa3gcmp256    ${staut_wifi_interface}    ${sta1_sap_ssid}    ${sta1_sap_passphrase}
+
+    staut wait wifi connected
+
+sta1 connection to sap
+    [Arguments]     ${security}
+    sta1 bash shell
+    IF              '${security}' == 'ccmp'
+                    wpa_cli ccmp    ${sta1_wifi_interface}    ${staut_sap_ssid}    ${staut_sap_passphrase}
+    END
+
+    sta1 wait wifi connected
+
+wifi manually reconnect
+    Write                       disconnect
+    ${output}=                  Read                                 delay=0.5s
+    Log                         ${output}
+    Write                       reconnect
+    Set Client Configuration    timeout=50 seconds
+    ${output}=                  Read Until                           CTRL-EVENT-CONNECTED
+    Log                         ${output}
+
+staut wifi manually reconnect
+    staut wpa_cli shell
+    wifi manually reconnect
+
+wifi auto reconnect
+    [Arguments]       ${wifi_interface}    ${channel}
+    Sleep             20s
+    ${output}=        Execute Command      sudo wpa_cli -i ${wifi_interface} status
+    Should Contain    ${output}            COMPLETED
+    Should Contain    ${output}            freq=${ch_freq_map_dic}[${channel}]
+
+staut wifi auto reconnect
+    [Arguments]            ${channel}
+    staut bash shell
+    wifi auto reconnect    ${staut_wifi_interface}    ${channel}
+
+print wifi status
+    [Arguments]              ${wifi_interface}
+    ${connection_status}=    Execute Command         sudo ${wpa_cli} -i ${wifi_interface} status
+    ${connection_info}=      Execute Command         sudo iw dev ${wifi_interface} info
+    ${connection_link}=      Execute Command         sudo iw dev ${wifi_interface} link
+    Log Many                 ${connection_status}    ${connection_info}                                 ${connection_link}
+
+staut print wifi status
+    staut bash shell
+    print wifi status        ${staut_wifi_interface}
+
+sta1 print wifi status
+    sta1 bash shell
+    print wifi status        ${sta1_wifi_interface}
+
+check wifi connection in wpa_cli
+    Set Client Configuration                   timeout=10 seconds
+    ${output}=                                 Read Until                  CTRL-EVENT-CONNECTED
+    Log                                        ${output}
+    Should Not Contain Any                     ${output}                   Handshake failed    
+    ...                                                                    WRONG_KEY
+    ...                                                                    into ignore list    
+    ...                                                                    CTRL-EVENT-SSID-TEMP-DISABLED
+    ...                                                                    CTRL-EVENT-DISCONNECTED
+
+staut wait wifi connected
+    staut wpa_cli shell
+    Read
+    staut bash shell
+    ${output}=               Execute Command                            sudo ${wpa_cli} -i ${staut_wifi_interface} status
+    Log                      ${output}
+    IF                       'wpa_state=COMPLETED' not in '''${output}'''
+                             Log                                        wifi not connected, waiting for ctrl-event-connected event
+                             staut wpa_cli shell
+                             check wifi connection in wpa_cli
+    END
+
+sta1 wait wifi connected
+    sta1 wpa_cli shell
+    Read
+    sta1 bash shell
+    ${output}=               Execute Command                            sudo ${wpa_cli} -i ${sta1_wifi_interface} status
+    Log                      ${output}
+    ${result}=               Evaluate                                   '''COMPLETED''' not in '''${output}'''
+    Log                      ${result}
+    IF                       'wpa_state=COMPLETED' not in '''${output}'''
+                             Log                                        wifi not connected, waiting for ctrl-event-connected event
+                             sta1 wpa_cli shell
+                             check wifi connection in wpa_cli
+    END
+
+ping test
+    [Arguments]            ${interface}       ${dst}    ${count}=${ping_count}
+    ${output}=             Execute Command    ping -I ${interface} -c ${count} ${dst}
+    Log                    ${output}
+    Should Not Contain     ${output}          100% packet loss
+
+staut ping aput
+    staut bash shell
+    ping test    ${staut_wifi_interface}    ${ap_ip}
+
+staut ping sta1 sap ip1
+    staut bash shell
+    ping test    ${staut_wifi_interface}    ${sta1_wifi_ip1}
+
+get ip
+    [Arguments]            ${interface}
+    Execute Command        sudo dhclient -r ${interface} 
+    Execute Command        sudo dhclient ${interface} 
+    ${output}=             Execute Command                  ifconfig ${interface}
+    ${ip_list}=            Get Regexp Matches               ${output}                (?<=inet )(?:\\d{1,3}\\.){3}\\d{1,3}
+    Log                    ${ip_list}
+    Should Not Be Empty    ${ip_list}
+    RETURN                 ${ip_list}[0]
+
+staut get ip
+    staut bash shell
+    ${ip}=    get ip    ${staut_wifi_interface}
+    RETURN    ${ip}
+
+set static ip
+    [Arguments]            ${interface}    ${ip}
+    Execute Command        sudo killall -9 dhclient
+    Execute Command        sudo ifconfig ${interface} ${ip}
+
+staut set static ip1
+    staut bash shell
+    set static ip         ${staut_wifi_interface}    ${staut_wifi_ip1}
+
+sta1 set static ip1
+    sta1 bash shell
+    set static ip         ${sta1_wifi_interface}     ${sta1_wifi_ip1}
+
+sta1 sap set static ip1
+    sta1 bash shell
+    set static ip         ${sta1_sap_interface}     ${sta1_wifi_ip1}
+
+reset ip
+    [Arguments]           ${interface}
+    Execute Command       sudo dhclient -r ${interface}
+    Execute Command       sudo killall -9 dhclient
+    Execute Command       sudo ifconfig ${interface} 0.0.0.0
+
+staut reset ip
+    staut bash shell
+    reset ip              ${staut_wifi_interface}
+
+sta1 reset ip
+    sta1 bash shell
+    reset ip              ${sta1_wifi_interface}
+
+scan test
+    Write                          bss_flush 0
+    Write                          scan_results
+    ${output}=                     Read                               delay=0.5s     
+    Log                            ${output}
+    Write                          scan
+    Set Client Configuration       timeout=10 seconds
+    Read Until                     CTRL-EVENT-SCAN-RESULTS
+
+    Write                          scan_results
+    ${output}=                     Read                               delay=0.5s     
+    Log                            ${output}
+    Should Contain                 ${output}                          ${scan_pass_ssid}
+
+staut scan test
+    staut wpa_cli shell
+    scan test                     
+
+staut driver reload
+    staut bash shell
+    Execute Command            ${driver_stop}
+    Sleep                      5s
+    ${output}=                 Execute Command    lsmod | grep scm
+    Log                        ${output}
+    ${output}=                 Execute Command    ifconfig -a
+    Log                        ${output}
+    Should Not Contain         ${output}          ${staut_wifi_interface}
+    ${output}=                 Execute Command    hciconfig
+    Log                        ${output}
+    Execute Command            ${driver_start}
+    ${output}=                 Execute Command    lsmod | grep scm
+    Log                        ${output}
+    ${output}=                 Execute Command    ifconfig -a
+    Log                        ${output}
+    Should Contain             ${output}          ${staut_wifi_interface}
+    ${output}=                 Execute Command    hciconfig
+    Log                        ${output}
+    Sleep                      5s
+

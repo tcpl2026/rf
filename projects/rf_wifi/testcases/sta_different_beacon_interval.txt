@@ -1,0 +1,75 @@
+*** Settings ***
+Library     SeleniumLibrary
+Library     SSHLibrary
+Library     String
+Library     OperatingSystem
+Library     DateTime
+
+Resource    ../variables/variables.txt
+Resource    ../keywords/wifi_sta.txt
+Resource    ../keywords/asus_router_config.txt
+Resource    ../keywords/iperf.txt
+Resource    ../keywords/sta_different_beacon_interval.txt
+Resource    ../keywords/suite_and_test_setup.txt
+Resource    ../keywords/timestamp_log_file.txt
+
+Suite Setup       sta different beacon interval suite setup
+Suite Teardown    Close All Connections
+
+*** Test Cases ***
+2g interval 20
+    sta different beacon interval    2g    20    ${ssid_2g}
+2g interval 40
+    sta different beacon interval    2g    40    ${ssid_2g}
+2g interval 60
+    sta different beacon interval    2g    60    ${ssid_2g}
+2g interval 80
+    sta different beacon interval    2g    80    ${ssid_2g}
+2g interval 100
+    sta different beacon interval    2g    100    ${ssid_2g}
+2g interval 200
+    sta different beacon interval    2g    200    ${ssid_2g}
+2g interval 300
+    sta different beacon interval    2g    300    ${ssid_2g}
+2g interval 400
+    sta different beacon interval    2g    400    ${ssid_2g}
+2g interval 500
+    sta different beacon interval    2g    500    ${ssid_2g}
+2g interval 600
+    sta different beacon interval    2g    600    ${ssid_2g}
+2g interval 700
+    sta different beacon interval    2g    700    ${ssid_2g}
+2g interval 800
+    sta different beacon interval    2g    800    ${ssid_2g}
+2g interval 900
+    sta different beacon interval    2g    900    ${ssid_2g}
+2g interval 1000
+    sta different beacon interval    2g    1000    ${ssid_2g}
+5g interval 20
+    sta different beacon interval    5g    20    ${ssid_5g}
+5g interval 40
+    sta different beacon interval    5g    40    ${ssid_5g}
+5g interval 60
+    sta different beacon interval    5g    60    ${ssid_5g}
+5g interval 80
+    sta different beacon interval    5g    80    ${ssid_5g}
+5g interval 100
+    sta different beacon interval    5g    100    ${ssid_5g}
+5g interval 200
+    sta different beacon interval    5g    200    ${ssid_5g}
+5g interval 300
+    sta different beacon interval    5g    300    ${ssid_5g}
+5g interval 400
+    sta different beacon interval    5g    400    ${ssid_5g}
+5g interval 500
+    sta different beacon interval    5g    500    ${ssid_5g}
+5g interval 600
+    sta different beacon interval    5g    600    ${ssid_5g}
+5g interval 700
+    sta different beacon interval    5g    700    ${ssid_5g}
+5g interval 800
+    sta different beacon interval    5g    800    ${ssid_5g}
+5g interval 900
+    sta different beacon interval    5g    900    ${ssid_5g}
+5g interval 1000
+    sta different beacon interval    5g    1000    ${ssid_5g}

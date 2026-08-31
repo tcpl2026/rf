@@ -1,0 +1,9 @@
+This is a wifi fucnction/throughput/stability test project created by robotframework.
+
+Usage:
+1. copy rf_wifi to the destination pc
+2. cd rf_wifi/
+3. python3 -m venv venv
+   source venv/bin/activate
+   pip install robotframework robotframework-sshlibrary robotframework-seleniumlibrary
+

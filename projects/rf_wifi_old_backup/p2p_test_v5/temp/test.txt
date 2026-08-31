@@ -1,0 +1,21 @@
+*** Settings ***
+Library    SSHLibrary
+Library    String
+
+*** Variables ***
+${host}            192.168.191.196
+${username}        scm
+${password}        qwerasdf
+
+*** Test Cases ***
+get_mac
+    Open Connection           ${host}
+    Login                     ${username}                         ${password}
+    ${output}=                Execute Command                     ifconfig wlan0
+    Log                       ${output}
+    ${lines}=                 Get Lines Matching Regexp           ${output}             ([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}    partial_match=true
+    Log                       ${lines}
+    ${mac_list}=              Get Regexp Matches                  ${output}             ([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}
+    Log                       ${mac_list}
+    Log                       ${mac_list}[0]
+

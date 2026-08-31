@@ -1,0 +1,54 @@
+*** Settings ***
+Library     SeleniumLibrary
+Library     SSHLibrary
+Library     String
+Library     OperatingSystem
+Library     DateTime
+
+Resource    ../variables/variables.txt
+Resource    ../keywords/wifi_sta.txt
+Resource    ../keywords/asus_router_config.txt
+Resource    ../keywords/iperf.txt
+Resource    ../keywords/sta_wep.txt
+Resource    ../keywords/suite_and_test_setup.txt
+Resource    ../keywords/timestamp_log_file.txt
+
+Suite Setup       sta wep suite setup
+Suite Teardown    Close All Connections
+
+*** Test Cases ***
+2g and 5g open wep64 key1
+    sta wep test    open    wep64    1 
+2g and 5g open wep64 key2
+    sta wep test    open    wep64    2
+2g and 5g open wep64 key3
+    sta wep test    open    wep64    3
+2g and 5g open wep64 key4
+    sta wep test    open    wep64    4
+
+2g and 5g open wep128 key1
+    sta wep test    open    wep128    1 
+2g and 5g open wep128 key2
+    sta wep test    open    wep128    2
+2g and 5g open wep128 key3
+    sta wep test    open    wep128    3
+2g and 5g open wep128 key4
+    sta wep test    open    wep128    4
+
+2g and 5g shared wep64 key1
+    sta wep test    shared    wep64    1 
+2g and 5g shared wep64 key2
+    sta wep test    shared    wep64    2
+2g and 5g shared wep64 key3
+    sta wep test    shared    wep64    3
+2g and 5g shared wep64 key4
+    sta wep test    shared    wep64    4
+
+2g and 5g shared wep128 key1
+    sta wep test    shared    wep128    1 
+2g and 5g shared wep128 key2
+    sta wep test    shared    wep128    2
+2g and 5g shared wep128 key3
+    sta wep test    shared    wep128    3
+2g and 5g shared wep128 key4
+    sta wep test    shared    wep128    4

@@ -1,0 +1,25 @@
+*** Settings ***
+Library          SSHLibrary
+Library          String
+Library          OperatingSystem
+
+Resource         ../variables/variables.txt
+Resource         ../keywords/bash_and_wpa_cli_shell.txt
+Resource         ../keywords/wifi_sap.txt
+Resource         ../keywords/suite_and_test_setup.txt
+
+Test Setup       stability_sap test setup
+Test Teardown    Close All Connections
+
+*** Test Cases ***
+test sap 2g he20 ccmp ch1
+    sap conf 2g he20 ccmp        1
+    staut start hostapd
+
+    sta1 connection to sap       ccmp
+
+test sap 5g he80 ch36 ccmp
+    sap conf 5g he80 ccmp        36
+    staut start hostapd
+
+    sta1 connection to sap       ccmp

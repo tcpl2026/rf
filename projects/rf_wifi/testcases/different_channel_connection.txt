@@ -1,0 +1,60 @@
+*** Settings ***
+Library     SeleniumLibrary
+Library     SSHLibrary
+Library     String
+Library     OperatingSystem
+
+Resource    ../variables/variables.txt
+Resource    ../keywords/wifi_sta.txt
+Resource    ../keywords/asus_router_config.txt
+Resource    ../keywords/suite_and_test_setup.txt
+
+Suite Setup       different_channel_connection suite setup
+Suite Teardown    Close All Connections
+
+*** Test Cases ***
+connect 2g ssid
+    staut connection to aput    ccmp            ${ssid_2g}
+    staut get ip
+
+2.4GHz 20M channel test
+    FOR               ${item}                  IN          @{2g_20M_channel_list}
+                      Log To Console           \n========= Testing Channel: ${item} =========
+                      set ap and reconnect     2g          20m                       ${item} 
+    END
+
+2.4GHz 40M channel test
+    FOR               ${item}                  IN          @{2g_40M_channel_list}
+                      Log To Console           \n========= Testing Channel: ${item} =========
+                      set ap and reconnect     2g          40m                        ${item}
+    END
+
+connect 5g ssid
+    staut connection to aput    ccmp               ${ssid_5g}
+
+5GHz 20M channel test
+    FOR               ${item}                  IN          @{5g_20M_channel_list}
+                      Log To Console           \n========= Testing Channel: ${item} =========
+                      set ap and reconnect     5g          20m                        ${item}
+    END
+
+5GHz 40M channel test
+    FOR               ${item}                  IN          @{5g_40M_channel_list}
+                      Log To Console           \n========= Testing Channel: ${item} =========
+                      set ap and reconnect     5g          40m                        ${item}
+    END
+
+5GHz 80M channel test
+    FOR               ${item}                   IN          @{5g_80M_channel_list}
+                      Log To Console           \n========= Testing Channel: ${item} =========
+                      set ap and reconnect      5g          80m                        ${item} 
+    END
+
+*** Keywords ***
+set ap and reconnect
+    [Arguments]                         ${band}    ${bw}    ${channel} 
+    wifi setting for throughput test    ${band}    ${bw}    ${channel}   
+    staut wifi auto reconnect           ${channel}
+    staut print wifi status
+    staut ping aput
+

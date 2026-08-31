@@ -1,0 +1,10 @@
+*** Settings ***
+Resource    ./keywords/asus_router_config.txt
+Resource    ./variables/variables.txt
+
+Library     SeleniumLibrary
+
+*** Test Cases ***
+factory default and reset asus router
+    reset and setup asus router
+

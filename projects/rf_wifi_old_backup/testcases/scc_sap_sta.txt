@@ -1,0 +1,29 @@
+*** Settings ***
+Library               SSHLibrary
+
+Resource              ../keywords/scc_keywords.txt
+Resource              ../variables/variables.txt
+
+Suite Setup           create sap interface
+Suite Teardown        remove sap interface
+
+*** Test Cases ***
+2g_he20_ccmp_channel_1
+    start 2g he20 ccmp sap                 1
+    start ccmp sta                         ${sta1_host}                 ${sap_ssid}                 ${sta1_wlan_interface}
+    check sta status                       ${sta1_host}                 ${sta1_wlan_interface}
+
+    config ip                              ${staut_host}                ${staut_sap__interface}     ${staut_ip1}
+    config ip                              ${sta1_host}                 ${sta1_wlan__interface}     ${sta1_ip1}
+    ping and run iperf3                    ${staut_host}                ${staut_sap_interface}      ${staut_ip1}
+    ...                                    ${sta1_host}                 ${sta1_wlan_interface}      ${sta1_ip1}
+
+2g_ht20_ccmp_channel_1
+    start 2g ht20 ccmp sap                 1
+    start ccmp sta                         ${sta1_host}                 ${sap_ssid}                 ${sta1_wlan_interface}
+    check sta status                       ${sta1_host}                 ${sta1_wlan_interface}
+
+    config ip                              ${staut_host}                ${staut_sap__interface}     ${staut_ip1}
+    config ip                              ${sta1_host}                 ${sta1_wlan__interface}     ${sta1_ip1}
+    ping and run iperf3                    ${staut_host}                ${staut_sap_interface}      ${staut_ip1}
+    ...                                    ${sta1_host}                 ${sta1_wlan_interface}      ${sta1_ip1}

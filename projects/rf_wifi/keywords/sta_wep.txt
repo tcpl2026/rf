@@ -1,0 +1,14 @@
+*** Keywords ***
+sta wep test
+    [Arguments]        ${authmode}    ${wepmode}    ${wepindex}
+    asus router wep    ${authmode}    ${wepmode}    ${wepindex}
+
+    staut wep connection to aput     ${ssid_2g}    ${authmode}   ${wepmode}    ${wepindex}
+    staut get ip
+    staut print wifi status
+    staut ping aput
+
+    staut wep connection to aput     ${ssid_5g}    ${authmode}   ${wepmode}    ${wepindex}
+    staut get ip
+    staut print wifi status
+    staut ping aput

@@ -1,0 +1,319 @@
+*** Keywords ***
+Get Go MAC
+    [Arguments]                    ${input}
+    ${ret}=                        Get Lines Containing String       ${input}          go_dev_addr
+    Log                            ${ret}
+    ${ret}=                        Split String                      ${ret}            go_dev_addr=
+    ${mac}=                        Get From List	             ${ret}            1
+    RETURN                         ${mac}
+    
+Get P2P Interface
+    [Arguments]                    ${interface}
+    ${output}=                     Execute Command                   sudo ${wpa_cli} -i ${interface} interface
+    Log                            ${output}
+    ${p2p_interface}=              Get Lines Containing String       ${output}          p2p-${interface}-
+    Log                            ${p2p_interface}
+    Should Not Be Empty            ${p2p_interface}
+    RETURN                         ${p2p_interface}
+
+staut get p2p interface
+    staut bash shell
+    ${output}=                     Execute Command                   sudo ${wpa_cli} -i ${staut_wifi_interface} interface
+    Log                            ${output}
+    ${staut_p2p_interface}=        Get Lines Containing String       ${output}          p2p-${staut_wifi_interface}-
+    Log                            ${staut_p2p_interface}
+    Should Not Be Empty            ${staut_p2p_interface}
+    RETURN                         ${staut_p2p_interface}
+
+sta1 get p2p interface
+    sta1 bash shell
+    ${output}=                     Execute Command                   sudo ${wpa_cli} -i ${sta1_wifi_interface} interface
+    Log                            ${output}
+    ${sta1_p2p_interface}=         Get Lines Containing String       ${output}          p2p-${sta1_wifi_interface}-
+    Log                            ${sta1_p2p_interface}
+    Should Not Be Empty            ${sta1_p2p_interface}
+    RETURN                         ${sta1_p2p_interface}
+
+Get Gc P2P Interface Status
+   sta1 wpa_cli shell
+   ${p2p_gc_interface}=           sta1 get p2p interface
+   Log                            ${p2p_gc_interface}
+
+   ${output}=                     Execute Command                   sudo ${wpa_cli} -i ${p2p_gc_interface} status
+   Log                            ${output} 
+
+Remove P2P Group on one host
+    [Arguments]                    ${interface}
+    Write                          interface ${interface}
+    ${output}=                     Read                          delay=0.5s
+    Log                            ${output}
+    Write                          p2p_group_remove *
+    ${output}=                     Read                          delay=0.5s
+    Log                            ${output}
+    Write                          interface
+    ${output}=                     Read                          delay=0.5s
+    Log                            ${output}
+    Should Not Contain             ${output}                     p2p-${interface}-           
+
+Remove P2P Group
+    staut wpa_cli shell
+    Remove P2P Group on one host   ${staut_wifi_interface}
+    sta1 wpa_cli shell
+    Remove P2P Group on one host   ${sta1_wifi_interface}
+
+Ping and Run Iperf
+    [Arguments]                    ${go_interface}             ${gc_interface}
+
+    staut bash shell
+    Execute Command                sudo ifconfig ${go_interface} ${staut_wifi_ip1}
+    ${output}=                     Execute Command                                       sudo ifconfig ${go_interface}
+    Log                            ${output}
+
+    sta1 bash shell
+    Execute Command                sudo ifconfig ${gc_interface} ${sta1_wifi_ip1}
+    ${output}=                     Execute Command                                       sudo ifconfig ${gc_interface}
+    Log                            ${output}
+    ${ping_result}=                Execute Command                                       ping ${staut_wifi_ip1} -I ${gc_interface} -c ${ping_count}
+    Log                            ${ping_result}
+    Should Contain                 ${ping_result}                                        bytes from ${staut_wifi_ip1}
+
+    #staut bash shell
+    #Execute Command                sudo killall -9 iperf3 ; iperf3 -s -i 1 -p 9001 -D
+    #sta1 bash shell
+    #${iperf_tx_result}=            Execute Command                                       iperf3 -t ${iperf_run_time} -i 1 -c ${staut_wifi_ip1} -p 9001 -P 4
+    #Should Contain                 ${iperf_tx_result}                                    connected
+
+    #staut bash shell
+    #Execute Command                sudo killall -9 iperf3 ; iperf3 -s -i 1 -p 9001 -D
+    #sta1 bash shell
+    #${iperf_rx_result}=            Execute Command                                       iperf3 -t ${iperf_run_time} -i 1 -c ${staut_wifi_ip1} -p 9001 -P 4 -R
+    #Should Contain                 ${iperf_rx_result}                                    connected
+
+    #Log Many                       ${iperf_tx_result}                                    ${iperf_rx_result}
+
+Start P2P Go
+    [Arguments]                    ${start_go_command}
+    staut wpa_cli shell
+    Write                          interface p2p-dev-${staut_wifi_interface}
+    Sleep                          0.1s
+    Write                          ${start_go_command}
+    ${output}=                     Read                              delay=1s
+    Log                            ${output}
+    Should Contain                 ${output}                         OK
+    ${p2p_go_mac}=                 Get Go MAC                        ${output}
+    Log                            ${p2p_go_mac}
+    RETURN                         ${p2p_go_mac}
+
+Start P2P Gc
+    [Arguments]                    ${go_mac}
+    sta1 wpa_cli shell
+    Write                          interface p2p-dev-${sta1_wifi_interface}
+    Write                          p2p_connect ${go_mac} pbc join
+
+Start P2P Gc PIN
+    [Arguments]                    ${go_mac}
+    sta1 wpa_cli shell
+    Write                          interface p2p-dev-${sta1_wifi_interface}
+    Sleep                          0.1s
+    Write                          p2p_connect ${go_mac} pin join
+    ${output}=                     Read                                delay=0.5s
+    Log                            ${output}
+    ${wps_pin}=                    Get Lines Matching Regexp           ${output}                          \\d{8}
+    Log                            ${wps_pin}
+    RETURN                         ${wps_pin}
+                              
+
+Check Go Success
+    staut wpa_cli shell
+    Set Client Configuration       timeout=10 seconds
+    ${output}=                     Read Until                        EAPOL-4WAY-HS-COMPLETED
+    Log                            ${output}
+    Write                          interface ${staut_wifi_interface}
+
+Check Gc Success
+    sta1 wpa_cli shell
+    Set Client Configuration       timeout=10 seconds
+    ${output}=                     Read Until                                     P2P-GROUP-FORMATION-SUCCESS
+    Log                            ${output}
+    Write                          interface ${sta1_wifi_interface}
+
+P2P PBC Autonomous Go and Go Start PBC First
+    [Documentation]                Test steps:
+    ...                            start autonomous go and start wps pbc
+    ...                            then start wps pbc on gc
+
+    [Arguments]                    ${go_command}
+    # start p2p go and get go mac
+    ${p2p_go_mac}=                 Start P2P GO                      ${go_command}
+
+    # get go interface
+    ${p2p_go_interface}=           staut get p2p interface
+    Log                            ${p2p_go_interface}
+
+    # start go wps_pbc
+    staut wpa_cli shell
+    Write                          interface ${p2p_go_interface}
+    Sleep                          0.1s
+    Write                          status
+    Sleep                          0.1s
+    Write                          wps_pbc
+    ${output}=                     Read                              delay=0.5s
+    Log                            ${output}
+
+    # start gc wps_pbc
+    Start P2P Gc                   ${p2p_go_mac}
+    Check Gc Success
+
+    # get gc interface
+    ${p2p_gc_interface}=           sta1 get p2p interface
+    Log                            ${p2p_gc_interface}
+
+    Check Go Success
+
+    Ping and Run Iperf             ${p2p_go_interface}               ${p2p_gc_interface}
+
+P2P PBC Autonomous Go and Gc Start PBC First
+    [Documentation]                Test steps:
+    ...                            start autonomous go
+    ...                            start wps pbc on gc
+    ...                            start wps pbc on go
+
+    [Arguments]                    ${go_command}
+    # start p2p go and get go mac
+    ${p2p_go_mac}=                 Start P2P GO                      ${go_command}
+    Sleep                          1s
+
+    # start gc wps_pbc
+    Start P2P Gc                   ${p2p_go_mac}
+
+    # get go interface
+    ${p2p_go_interface}=           staut get p2p interface
+    Log                            ${p2p_go_interface}
+
+    # start go wps_pbc
+    staut wpa_cli shell
+    Write                          interface ${p2p_go_interface}
+    Write                          wps_pbc
+
+    Check Gc Success
+
+    # get gc interface
+    ${p2p_gc_interface}=           sta1 get p2p interface
+    Log                            ${p2p_gc_interface}
+
+    Check Go Success
+
+    Ping and Run Iperf             ${p2p_go_interface}               ${p2p_gc_interface}
+
+P2P PBC Autonomous Go Enter Gc PIN In Go
+    [Documentation]                Test steps:
+    ...                            start autonomous go
+    ...                            start wps pin on gc
+    ...                            enter gc pin on go
+
+    [Arguments]                    ${go_command}
+    # start p2p go and get go mac
+    ${p2p_go_mac}=                 Start P2P GO                      ${go_command}
+
+    # start gc wps_pbc
+    ${gc_pin}=                     Start P2P Gc PIN                  ${p2p_go_mac}
+
+    # get go interface
+    ${p2p_go_interface}=           staut get p2p interface
+    Log                            ${p2p_go_interface}
+
+    # enter gc pin on go
+    staut wpa_cli shell
+    Write                          interface ${p2p_go_interface}
+    Sleep                          0.1s
+    Write                          wps_pin any ${gc_pin}
+
+    Check Gc Success
+
+    # get gc interface
+    ${p2p_gc_interface}=           sta1 get p2p interface
+    Log                            ${p2p_gc_interface}
+
+    Check Go Success
+
+    Ping and Run Iperf             ${p2p_go_interface}               ${p2p_gc_interface}
+
+staut get P2p-dev-wlan mac
+    staut bash shell
+    ${output}=                     Execute Command                   sudo ${wpa_cli} -i p2p-dev-${staut_wifi_interface} status
+    ${lines}                       Get Lines Containing String       ${output}            p2p_device_address
+    ${mac}=                        Get Regexp Matches                ${lines}             ([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}
+    Log                            ${mac}
+    RETURN                         ${mac}[0]
+
+sta1 get P2p-dev-wlan mac
+    sta1 bash shell
+    ${output}=                     Execute Command                   sudo ${wpa_cli} -i p2p-dev-${sta1_wifi_interface} status
+    ${lines}                       Get Lines Containing String       ${output}            p2p_device_address
+    ${mac}=                        Get Regexp Matches                ${lines}             ([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}
+    Log                            ${mac}
+    RETURN                         ${mac}[0]
+
+staut p2p find
+    staut wpa_cli shell
+    Write                          interface p2p-dev-${staut_wifi_interface}
+    Sleep                          0.1s
+    Write                          p2p_find
+
+sta1 p2p find
+    sta1 wpa_cli shell
+    Write                          interface p2p-dev-${sta1_wifi_interface}
+    Sleep                          0.1s
+    Write                          p2p_find
+
+staut p2p find match mac
+    [Arguments]                    ${p2p_peer_mac}
+    staut wpa_cli shell
+    Set Client Configuration       timeout=10 seconds
+    ${output}=                     Read Until                        ${p2p_peer_mac}
+    Log                            ${output}
+
+sta1 p2p find match mac
+    [Arguments]                    ${p2p_peer_mac}
+    sta1 wpa_cli shell
+    Set Client Configuration       timeout=10 seconds
+    ${output}=                     Read Until                        ${p2p_peer_mac}
+    Log                            ${output}
+
+P2P PBC Negotiated Go
+   [Arguments]                     ${go_p2p_command}
+   ${staut_p2pdev_mac}=            staut get P2p-dev-wlan mac
+   ${sta1_p2pdev_mac}=             sta1 get P2p-dev-wlan mac
+
+   staut p2p find
+   sta1 p2p find
+
+   staut p2p find match mac        ${sta1_p2pdev_mac}
+   sta1 p2p find match mac         ${staut_p2pdev_mac}
+
+   # start pbc on go and gc
+   staut wpa_cli shell
+   Write                          p2p_connect ${sta1_p2pdev_mac} pbc ${go_p2p_command}
+   Sleep                          1s
+   sta1 wpa_cli shell
+   Write                          p2p_connect ${staut_p2pdev_mac} pbc go_intent=1
+
+   staut wpa_cli shell
+   Set Client Configuration       timeout=10 seconds
+   ${output}=                     Read Until                         AP-STA-CONNECTED            
+   Log                            ${output}
+   sta1 wpa_cli shell
+   Set Client Configuration       timeout=10 seconds
+   ${output}=                     Read Until                         P2P-GROUP-FORMATION-SUCCES
+   Log                            ${output}
+
+   Get Gc P2P Interface Status
+
+   # get go interface
+   ${p2p_go_interface}=           staut get p2p interface
+   Log                            ${p2p_go_interface}
+   # get gc interface
+   ${p2p_gc_interface}=           sta1 get p2p interface
+   Log                            ${p2p_gc_interface}
+
+   Ping and Run Iperf             ${p2p_go_interface}               ${p2p_gc_interface}

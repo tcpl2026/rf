@@ -1,0 +1,52 @@
+*** Settings ***
+Library     SeleniumLibrary
+Library     SSHLibrary
+Library     String
+Library     OperatingSystem
+Library     DateTime
+
+Resource    ../variables/variables.txt
+Resource    ../keywords/wifi_sta.txt
+Resource    ../keywords/asus_router_config.txt
+Resource    ../keywords/iperf.txt
+Resource    ../keywords/suite_and_test_setup.txt
+Resource    ../keywords/timestamp_log_file.txt
+
+Suite Setup       throughput ht suite setup
+Suite Teardown    Close All Connections
+
+*** Test Cases ***
+connect 2g ssid
+    staut connection to aput    ccmp            ${ssid_2g}
+
+2.4GHz 20M throughput test
+    Append To File    ${throughput_record_file}    2.4GHz_20M\n
+    FOR               ${item}                      IN                           @{2g_20M_channel_list}
+                      Append To File               ${throughput_record_file}    Channel:${item}\n
+                      run throughput test          2g                           20m                        ${item}    ${throughput_2g_iperf_pairs}
+    END
+
+2.4GHz 40M throughput test
+    Append To File    ${throughput_record_file}    2.4GHz_40M\n
+    FOR               ${item}                      IN                            @{2g_40M_channel_list}
+                      Append To File               ${throughput_record_file}     Channel:${item}\n
+                      run throughput test          2g                            40m                       ${item}     ${throughput_2g_iperf_pairs}
+    END
+
+connect 5g ssid
+    staut connection to aput    ccmp               ${ssid_5g}
+
+5GHz 20M throughput test
+    Append To File    ${throughput_record_file}    5GHz_20M\n
+    FOR               ${item}                      IN                             @{5g_20M_channel_list}
+                      Append To File               ${throughput_record_file}      Channel:${item}\n
+                      run throughput test          5g                             20m                       ${item}    ${throughput_5g_iperf_pairs}
+    END
+
+5GHz 40M throughput test
+    Append To File    ${throughput_record_file}    5GHz_40M\n
+    FOR               ${item}                      IN                             @{5g_40M_channel_list}
+                      Append To File               ${throughput_record_file}      Channel:${item}\n
+                      run throughput test          5g                             40m                       ${item}    ${throughput_5g_iperf_pairs}
+    END
+

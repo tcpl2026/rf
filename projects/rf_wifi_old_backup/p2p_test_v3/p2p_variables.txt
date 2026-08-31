@@ -1,0 +1,24 @@
+*** Variables ***
+${HOST1}                                   192.168.191.196
+${HOST2}                                   192.168.191.131
+
+${HOST1_WPA_CLI}                           host1_wpa_cli
+${HOST1_BASH}                              host1_bash
+${HOST2_WPA_CLI}                           host2_wpa_cli
+${HOST2_BASH}                              host2_bash
+
+${USERNAME}                                scm
+${PASSWORD}                                qwerasdf
+
+${START_WPA_SUPPLICANT_COMMAND}            sudo /home/scm/hostap/wpa_supplicant/wpa_supplicant -i wlan0 -C /var/run/wpa_supplicant -B
+${START_WPA_CLI_COMMAND}                   sudo /home/scm/hostap/wpa_supplicant/wpa_cli -i wlan0 
+${START_WPA_CLI_INTERFACE_COMMAND}         sudo /home/scm/hostap/wpa_supplicant/wpa_cli -i wlan0 interface
+
+@{2GHz_Channel_List}                       2412    2417    2422    2427    2432    2437    2442   2447    2452    2457    2462
+@{5GHz_Channel_List}                       5180    5200    5220    5240    5745    5765    5785   5805
+
+${HOST1_P2P_IP}                            192.168.100.100
+${HOST2_P2P_IP}                            192.168.100.200
+
+${PING_COUNT}                              10
+${IPERF_RUN_TIME}                          10

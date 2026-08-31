@@ -1,0 +1,46 @@
+*** Settings ***
+Library     SeleniumLibrary
+Library     SSHLibrary
+Library     String
+Library     OperatingSystem
+Library     DateTime
+
+Resource    ../variables/variables.txt
+Resource    ../keywords/wifi_sta.txt
+Resource    ../keywords/wifi_sap.txt
+Resource    ../keywords/iperf.txt
+Resource    ../keywords/suite_and_test_setup.txt
+Resource    ../keywords/timestamp_log_file.txt
+
+Suite Setup       sap throughput suite setup
+Suite Teardown    Close All Connections
+
+*** Test Cases ***
+2.4GHz 20M throughput test
+    Append To File    ${throughput_record_file}    2.4GHz_20M\n
+    FOR               ${item}                      IN                           @{2g_20M_channel_list}
+                      Append To File               ${throughput_record_file}    Channel:${item}\n
+                      sap run throughput test      2g    he20    ccmp    ${item}    ${throughput_2g_iperf_pairs}
+    END
+
+5GHz 20M throughput test
+    Append To File    ${throughput_record_file}    5GHz_20M\n
+    FOR               ${item}                      IN                             @{5g_20M_channel_list}
+                      Append To File               ${throughput_record_file}      Channel:${item}\n
+                      sap run throughput test      5g    he20    ccmp    ${item}    ${throughput_2g_iperf_pairs}
+    END
+
+5GHz 40M throughput test
+    Append To File    ${throughput_record_file}    5GHz_40M\n
+    FOR               ${item}                      IN                             @{5g_20M_channel_list}
+                      Append To File               ${throughput_record_file}      Channel:${item}\n
+                      sap run throughput test      5g    he40    ccmp    ${item}    ${throughput_5g_iperf_pairs}
+    END
+
+5GHz 80M throughput test
+    Append To File   ${throughput_record_file}     5GHz_80M\n
+    FOR              ${item}                       IN                              @{5g_20M_channel_list}
+                     Append To File                ${throughput_record_file}       Channel:${item}\n
+                     sap run throughput test       5g    he80    ccmp    ${item}    ${throughput_5g_iperf_pairs}
+    END
+

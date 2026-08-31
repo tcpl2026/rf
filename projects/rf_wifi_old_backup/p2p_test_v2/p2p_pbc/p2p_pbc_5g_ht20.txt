@@ -1,0 +1,255 @@
+*** Settings ***
+Library              SSHLibrary
+Library              String
+Library              Collections
+Suite Setup          Login Test PC and Start Wpa_supplicant
+Suite Teardown       Stop Wpa_supplicant and Close All Connections
+
+*** Variables ***
+${HOST1}                                   192.168.191.131
+${HOST1_ALIAS}                             dell_south
+${HOST2}                                   192.168.191.169
+${HOST2_ALIAS}                             dell_7080
+${USERNAME}                                scm
+${PASSWORD}                                qwerasdf
+${START_WPA_SUPPLICANT_COMMAND}            sudo /home/scm/hostap/wpa_supplicant/wpa_supplicant -i wlan0 -C /var/run/wpa_supplicant -B
+${START_WPA_CLI_COMMAND}                   sudo /home/scm/hostap/wpa_supplicant/wpa_cli -i wlan0 
+${START_WPA_CLI_INTERFACE_COMMAND}         sudo /home/scm/hostap/wpa_supplicant/wpa_cli -i wlan0 interface
+@{2GHz_Channel_List}                       2412    2417    2422    2427    2432    2437    2442   2447    2452    2457    2462
+@{5GHz_Channel_List}                       5180    5200    5220    5240    5745    5765    5785   5805
+${HOST1_P2P_IP}                            192.168.100.100
+${HOST2_P2P_IP}                            192.168.100.200
+
+*** Test Cases ***
+p2p_autonomous_go_pbc_5g_ht20_channel_161_go_pbc_first
+    [Documentation]                Test steps:
+    ...                            start autonomous go and start wps pbc
+    ...                            then start wps pbc on gc
+    [Tags]                         temp
+    Switch Connection              ${HOST1_ALIAS}
+    Get Hostname
+    Get Interfaces
+    Enter Wpa_cli
+    Write                          interface p2p-dev-wlan0
+    Write                          p2p_group_add freq=5805
+    ${output}=                     Read                              delay=1s
+    Log                            ${output}
+    ${p2p_go_mac}=                 Get Go MAC                        ${output}
+    Log                            ${p2p_go_mac}
+    Quit Wpa_cli
+    ${p2p_go_interface}=           Get P2P Interface
+    Log                            ${p2p_go_interface}
+    Enter Wpa_cli
+    Write                          interface ${p2p_go_interface}
+    Write                          wps_pbc
+
+    Switch Connection              ${HOST2_ALIAS}
+    Get Hostname
+    Get Interfaces
+    Enter Wpa_cli
+    Write                          interface p2p-dev-wlan0
+    Write                          p2p_connect ${p2p_go_mac} pbc join
+    Set Client Configuration       timeout=10 seconds
+    ${output}=                     Read Until                                     P2P-GROUP-FORMATION-SUCCESS
+    Log                            ${output}
+    Quit Wpa_cli
+    ${p2p_gc_interface}=           Get P2P Interface
+    Log                            ${p2p_gc_interface}
+
+
+    Switch Connection              ${HOST1_ALIAS}
+    Set Client Configuration       timeout=10 seconds
+    ${output}=                     Read Until                        EAPOL-4WAY-HS-COMPLETED
+    Log                            ${output}
+    Quit Wpa_cli
+
+    Ping and Run Iperf             ${p2p_go_interface}               ${p2p_gc_interface}
+
+    [Teardown]                     Remove P2P Group
+
+p2p_autonomous_go_pbc_5g_ht20_channel_161_gc_pbc_first
+    [Documentation]                Test steps:
+    ...                            start autonomous go
+    ...                            start wps pbc on gc
+    ...                            then start wps pbc on go
+    Switch Connection              ${HOST1_ALIAS}
+    Get Hostname
+    Get Interfaces
+    Enter Wpa_cli
+    Write                          interface p2p-dev-wlan0
+    Write                          p2p_group_add freq=5805
+    ${output}=                     Read                              delay=1s
+    Log                            ${output}
+    ${p2p_go_mac}=                 Get Go MAC                        ${output}
+    Log                            ${p2p_go_mac}
+    Quit Wpa_cli
+
+    Switch Connection              ${HOST2_ALIAS}
+    Get Hostname
+    Get Interfaces
+    Enter Wpa_cli
+    Write                          interface p2p-dev-wlan0
+    Write                          p2p_connect ${p2p_go_mac} pbc join
+    Quit Wpa_cli
+
+    Switch Connection              ${HOST1_ALIAS}
+    Enter Wpa_cli
+    Write                          interface
+    ${output}=                     Read                              delay=0.5s
+    Log                            ${output}
+    ${p2p_go_interface}=           Get Lines Containing String       ${output}          p2p-wlan0-
+    Log                            ${p2p_go_interface}
+    Write                          interface ${p2p_go_interface}
+    Write                          wps_pbc
+    Set Client Configuration       timeout=10 seconds
+    ${output}=                     Read Until                        EAPOL-4WAY-HS-COMPLETED
+    Log                            ${output}
+    Quit Wpa_cli
+
+    [Teardown]                     Remove P2P Group
+
+p2p_autonomous_go_pbc_5g_ht20_channel_all_go_pbc_first
+    [Documentation]                Test steps:
+    ...                            start autonomous go and start wps pbc
+    ...                            then start wps pbc on gc
+    FOR                            ${item}                           IN               @{5GHz_Channel_List}       
+        Switch Connection              ${HOST1_ALIAS}
+        Get Hostname
+        Get Interfaces
+        Enter Wpa_cli
+        Write                          interface p2p-dev-wlan0
+        Write                          p2p_group_add freq=${item}
+        ${output}=                     Read                              delay=1s
+        Log                            ${output}
+        ${p2p_go_mac}=                 Get Go MAC                        ${output}
+        Log                            ${p2p_go_mac}
+        Write                          interface
+        ${output}=                     Read                              delay=0.5s
+        Log                            ${output}
+        ${p2p_go_interface}=           Get Lines Containing String       ${output}          p2p-wlan0-
+        Log                            ${p2p_go_interface}
+        Write                          interface ${p2p_go_interface}
+        Write                          wps_pbc
+        Quit Wpa_cli
+
+        Switch Connection              ${HOST2_ALIAS}
+        Get Hostname
+        Get Interfaces
+        Enter Wpa_cli
+        Write                          interface p2p-dev-wlan0
+        Write                          p2p_connect ${p2p_go_mac} pbc join
+        Set Client Configuration       timeout=10 seconds
+        ${output}=                     Read Until                                     P2P-GROUP-FORMATION-SUCCESS
+        Log                            ${output}
+        Quit Wpa_cli
+
+        Remove P2P Group
+    END
+
+*** Keywords ***
+Get Go MAC
+    [Arguments]                    ${input}
+    ${ret}=                        Get Lines Containing String       ${input}          go_dev_addr
+    Log                            ${ret}
+    ${ret}=                        Split String                      ${ret}            go_dev_addr=
+    ${mac}=                        Get From List	             ${ret}            1
+    RETURN                         ${mac}
+    
+Get P2P Interface
+    ${output}=                     Execute Command                   ${START_WPA_CLI_INTERFACE_COMMAND}
+    Log                            ${output}
+    ${p2p_interface}=              Get Lines Containing String       ${output}          p2p-wlan0-
+    Log                            ${p2p_interface}
+    RETURN                         ${p2p_interface}
+
+Get Hostname
+    ${hostname}=                   Execute Command                   hostname
+    Log                            ${hostname}
+
+Enter Wpa_cli
+    Sleep                          0.5s
+    Write                          ${START_WPA_CLI_COMMAND}
+
+Quit Wpa_cli
+    Write                          quit
+    Sleep                          0.5s
+
+Get Interfaces
+    Enter Wpa_cli
+    Write                          interface
+    ${interfaces_list}=            Read                              delay=0.5s
+    Log                            ${interfaces_list}
+    Quit Wpa_cli
+
+Start Wpa_supplicant
+    ${output}                      Execute Command                  sudo killall -9 wpa_supplicant
+    Log                            ${output}
+    ${output}                      Execute Command                  sudo killall -9 wpa_cli
+    Log                            ${output}
+    ${output}                      Execute Command                  ${START_WPA_SUPPLICANT_COMMAND}
+    Log                            ${output}
+
+Login Test PC and Start Wpa_supplicant
+    Open Connection                ${HOST1}                         alias=${HOST1_ALIAS}
+    Login                          ${USERNAME}                      ${PASSWORD}
+    Start Wpa_supplicant
+
+    Open Connection                ${HOST2}                         alias=${HOST2_ALIAS}
+    Login                          ${USERNAME}                      ${PASSWORD}
+    Start Wpa_supplicant
+
+Stop Wpa_supplicant and Close All Connections
+    Switch Connection              ${HOST1_ALIAS}
+    Execute Command                sudo killall -9 wpa_supplicant
+    Execute Command                sudo killall -9 wpa_cli
+    ${output}                      Execute Command                  ps aux | grep supplicant
+    Log                            ${output}
+
+    Switch Connection              ${HOST2_ALIAS}
+    Execute Command                sudo killall -9 wpa_supplicant
+    Execute Command                sudo killall -9 wpa_cli
+    ${output}                      Execute Command                  ps aux | grep supplicant
+    Log                            ${output}
+    Close All Connections
+
+Remove P2P Group
+    Switch Connection              ${HOST1_ALIAS}
+    Enter Wpa_cli
+    Write                          interface wlan0
+    Write                          p2p_group_remove *
+    Write                          interface
+    ${output}=                     Read                          delay=0.5s
+    Log                            ${output}
+    Quit Wpa_cli
+
+    Switch Connection              ${HOST2_ALIAS}
+    Enter Wpa_cli
+    Write                          interface wlan0
+    Write                          p2p_group_remove *
+    Write                          interface
+    ${output}=                     Read                          delay=0.5s
+    Log                            ${output}
+    Quit Wpa_cli
+
+Ping and Run Iperf
+    [Arguments]                    ${p2p_interface1}             ${p2p_interface2}
+
+    Switch Connection              ${HOST1_ALIAS}
+    Execute Command                sudo ifconfig ${p2p_interface1} ${HOST1_P2P_IP}
+    ${output}=                     Execute Command                                                sudo ifconfig ${p2p_interface1}
+    Log                            ${output}
+    Execute Command                sudo killall -9 iperf3 ; iperf3 -s -i 1 -p 9001 -D
+
+    Switch Connection              ${HOST2_ALIAS}
+    ${output}=                     Read                                                           delay=0.5s
+    Log                            ${output}
+    Execute Command                sudo ifconfig ${p2p_interface2} ${HOST2_P2P_IP}
+    ${output}=                     Execute Command                                                sudo ifconfig ${p2p_interface2}
+    Log                            ${output}
+    ${output}=                     Execute Command                                                ping ${HOST1_P2P_IP} -I ${p2p_interface1} -c 10
+    Log                            ${output}
+    Should Contain                 ${output}                                                      bytes from ${HOST1_P2P_IP} 
+    ${output}=                     Execute Command                                                iperf3 -t 30 -i 1 -c ${HOST1_P2P_IP} -p 9001 --bidir
+    Log                            ${output}
+    Should Contain                 ${output}                                                      connected
+

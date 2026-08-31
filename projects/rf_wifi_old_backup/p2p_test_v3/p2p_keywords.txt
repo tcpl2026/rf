@@ -1,0 +1,214 @@
+*** Keywords ***
+Get Go MAC
+    [Arguments]                    ${input}
+    ${ret}=                        Get Lines Containing String       ${input}          go_dev_addr
+    Log                            ${ret}
+    ${ret}=                        Split String                      ${ret}            go_dev_addr=
+    ${mac}=                        Get From List	             ${ret}            1
+    RETURN                         ${mac}
+    
+Get P2P Interface
+    [Arguments]                    ${host_alias}
+    Switch Connection              ${host_alias}
+    ${output}=                     Execute Command                   ${START_WPA_CLI_INTERFACE_COMMAND}
+    Log                            ${output}
+    ${p2p_interface}=              Get Lines Containing String       ${output}          p2p-wlan0-
+    Log                            ${p2p_interface}
+    Should Not Be Empty            ${p2p_interface}
+    RETURN                         ${p2p_interface}
+
+Get Hostname
+    ${hostname}=                   Execute Command                   hostname
+    Log                            ${hostname}
+
+Start Wpa_supplicant
+    ${output}                      Execute Command                  sudo killall -9 wpa_supplicant
+    Log                            ${output}
+    ${output}                      Execute Command                  sudo killall -9 wpa_cli
+    Log                            ${output}
+    ${output}                      Execute Command                  ${START_WPA_SUPPLICANT_COMMAND}
+    Log                            ${output}
+
+Login Test PC and Start Wpa_supplicant and Enter Wpa_cli
+    Open Connection                ${HOST1}                         alias=${HOST1_WPA_CLI}
+    Login                          ${USERNAME}                      ${PASSWORD}
+    Start Wpa_supplicant
+    Sleep                          0.5s
+    Write                          ${START_WPA_CLI_COMMAND}
+
+    Open Connection                ${HOST2}                         alias=${HOST2_WPA_CLI}
+    Login                          ${USERNAME}                      ${PASSWORD}
+    Start Wpa_supplicant
+    Sleep                          0.5s
+    Write                          ${START_WPA_CLI_COMMAND}
+
+    Open Connection                ${HOST1}                         alias=${HOST1_BASH}
+    Login                          ${USERNAME}                      ${PASSWORD}
+
+    Open Connection                ${HOST2}                         alias=${HOST2_BASH}
+    Login                          ${USERNAME}                      ${PASSWORD}
+
+Stop Wpa_supplicant and Close All Connections
+    Switch Connection              ${HOST1_BASH}
+    Execute Command                sudo killall -9 wpa_supplicant
+    Execute Command                sudo killall -9 wpa_cli
+    ${output}                      Execute Command                  ps aux | grep supplicant
+    Log                            ${output}
+
+    Switch Connection              ${HOST2_BASH}
+    Execute Command                sudo killall -9 wpa_supplicant
+    Execute Command                sudo killall -9 wpa_cli
+    ${output}                      Execute Command                  ps aux | grep supplicant
+    Log                            ${output}
+
+    Close All Connections
+
+Remove P2P Group
+    Switch Connection              ${HOST1_WPA_CLI}
+    Write                          interface wlan0
+    ${output}=                     Read                          delay=0.5s
+    Log                            ${output}
+    Write                          p2p_group_remove *
+    ${output}=                     Read                          delay=0.5s
+    Log                            ${output}
+    Write                          interface
+    ${output}=                     Read                          delay=0.5s
+    Log                            ${output}
+    Should Not Contain             ${output}                     p2p-wlan0-           
+
+    Switch Connection              ${HOST2_WPA_CLI}
+    Write                          interface wlan0
+    ${output}=                     Read                          delay=0.5s
+    Log                            ${output}
+    Write                          p2p_group_remove *
+    ${output}=                     Read                          delay=0.5s
+    Log                            ${output}
+    Write                          interface
+    ${output}=                     Read                          delay=0.5s
+    Log                            ${output}
+    Should Not Contain             ${output}                     p2p-wlan0-           
+
+Ping and Run Iperf
+    [Arguments]                    ${p2p_interface1}             ${p2p_interface2}
+
+    Switch Connection              ${HOST1_BASH}
+    Execute Command                sudo ifconfig ${p2p_interface1} ${HOST1_P2P_IP}
+    ${output}=                     Execute Command                                       sudo ifconfig ${p2p_interface1}
+    Log                            ${output}
+
+    Switch Connection              ${HOST2_BASH}
+    Execute Command                sudo ifconfig ${p2p_interface2} ${HOST2_P2P_IP}
+    ${output}=                     Execute Command                                       sudo ifconfig ${p2p_interface2}
+    Log                            ${output}
+    ${ping_result}=                Execute Command                                       ping ${HOST1_P2P_IP} -I ${p2p_interface1} -c ${PING_COUNT}
+    Log                            ${ping_result}
+    Should Contain                 ${ping_result}                                        bytes from ${HOST1_P2P_IP} 
+
+    Switch Connection              ${HOST1_BASH}
+    Execute Command                sudo killall -9 iperf3 ; iperf3 -s -i 1 -p 9001 -D
+    Switch Connection              ${HOST2_BASH}
+    ${iperf_tx_result}=            Execute Command                                       iperf3 -t ${IPERF_RUN_TIME} -i 1 -c ${HOST1_P2P_IP} -p 9001 -P 4
+    Should Contain                 ${iperf_tx_result}                                    connected
+
+    Switch Connection              ${HOST1_BASH}
+    Execute Command                sudo killall -9 iperf3 ; iperf3 -s -i 1 -p 9001 -D
+    Switch Connection              ${HOST2_BASH}
+    ${iperf_rx_result}=            Execute Command                                       iperf3 -t ${IPERF_RUN_TIME} -i 1 -c ${HOST1_P2P_IP} -p 9001 -P 4 -R
+    Should Contain                 ${iperf_rx_result}                                    connected
+
+    Log Many                       ${iperf_tx_result}                                    ${iperf_rx_result}
+
+Start P2P Go
+    [Arguments]                    ${start_go_command}
+    Switch Connection              ${HOST1_WPA_CLI}
+    Write                          interface p2p-dev-wlan0
+    Sleep                          0.1s
+    Write                          ${start_go_command}
+    ${output}=                     Read                              delay=1s
+    Log                            ${output}
+    Should Contain                 ${output}                         OK
+    ${p2p_go_mac}=                 Get Go MAC                        ${output}
+    Log                            ${p2p_go_mac}
+    RETURN                         ${p2p_go_mac}
+
+Start P2P Gc
+    [Arguments]                    ${go_mac}
+    Switch Connection              ${HOST2_WPA_CLI}
+    Write                          interface p2p-dev-wlan0
+    Write                          p2p_connect ${go_mac} pbc join
+
+Check Go Success
+    Switch Connection              ${HOST1_WPA_CLI}
+    Set Client Configuration       timeout=10 seconds
+    ${output}=                     Read Until                        EAPOL-4WAY-HS-COMPLETED
+    Log                            ${output}
+
+Check Gc Success
+    Switch Connection              ${HOST2_WPA_CLI}
+    Set Client Configuration       timeout=10 seconds
+    ${output}=                     Read Until                                     P2P-GROUP-FORMATION-SUCCESS
+    Log                            ${output}
+
+P2P PBC Autonomous Go and Go Start PBC First
+    [Documentation]                Test steps:
+    ...                            start autonomous go and start wps pbc
+    ...                            then start wps pbc on gc
+
+    [Arguments]                    ${go_command}
+    # start p2p go and get go mac
+    ${p2p_go_mac}=                 Start P2P GO                      ${go_command}
+
+    # get go interface
+    ${p2p_go_interface}=           Get P2P Interface                 ${HOST1_BASH}
+    Log                            ${p2p_go_interface}
+
+    # start go wps_pbc
+    Switch Connection              ${HOST1_WPA_CLI}
+    Write                          interface ${p2p_go_interface}
+    Write                          wps_pbc
+
+    # start gc wps_pbc
+    Start P2P Gc                   ${p2p_go_mac}
+    Check Gc Success
+
+    # get gc interface
+    ${p2p_gc_interface}=           Get P2P Interface                 ${HOST2_BASH}
+    Log                            ${p2p_gc_interface}
+
+    Check Go Success
+
+    Ping and Run Iperf             ${p2p_go_interface}               ${p2p_gc_interface}
+
+P2P PBC Autonomous Go and Gc Start PBC First
+    [Documentation]                Test steps:
+    ...                            start autonomous go
+    ...                            start wps pbc on gc
+    ...                            start wps pbc on go
+
+    [Arguments]                    ${go_command}
+    # start p2p go and get go mac
+    ${p2p_go_mac}=                 Start P2P GO                      ${go_command}
+    Sleep                          1s
+
+    # start gc wps_pbc
+    Start P2P Gc                   ${p2p_go_mac}
+
+    # get go interface
+    ${p2p_go_interface}=           Get P2P Interface                 ${HOST1_BASH}
+    Log                            ${p2p_go_interface}
+
+    # start go wps_pbc
+    Switch Connection              ${HOST1_WPA_CLI}
+    Write                          interface ${p2p_go_interface}
+    Write                          wps_pbc
+
+    Check Gc Success
+
+    # get gc interface
+    ${p2p_gc_interface}=           Get P2P Interface                 ${HOST2_BASH}
+    Log                            ${p2p_gc_interface}
+
+    Check Go Success
+
+    Ping and Run Iperf             ${p2p_go_interface}               ${p2p_gc_interface}
+

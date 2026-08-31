@@ -1,0 +1,162 @@
+*** Settings ***
+Library              SSHLibrary
+Library              String
+Library              Collections
+
+Resource             ../p2p_variables.txt
+Resource             ../p2p_keywords.txt
+
+Suite Setup          Login Test PC and Start Wpa_supplicant
+Suite Teardown       Stop Wpa_supplicant and Close All Connections
+
+*** Variables ***
+# settings->resource已经导入了variable，这里再添加variables的作用是：
+# copy 该测试文件为另一个测试文件时，好修改，比如case名，channel，p2p_group_add的命令
+# 只要在这个位置改一次，不需要到每个case里修改
+${TEST_BAND}                  2g
+${TEST_CHANNEL}               1
+${TEST_FREQ}                  2412
+${P2P_GROUP_ADD_COMMAND}      p2p_group_add he freq=
+
+*** Test Cases ***
+p2p_autonomous_go_pbc_${TEST_BAND}_he_channel_${TEST_CHANNEL}_go_pbc_first
+    [Documentation]                Test steps:
+    ...                            start autonomous go and start wps pbc
+    ...                            then start wps pbc on gc
+    [Tags]                         case1
+    Switch Connection              ${HOST1_ALIAS}
+    Get Hostname
+    Get Interfaces
+    Enter Wpa_cli
+    Write                          interface p2p-dev-wlan0
+    Write                          ${P2P_GROUP_ADD_COMMAND}${TEST_FREQ}
+    ${output}=                     Read                              delay=1s
+    Log                            ${output}
+    Should Contain                 ${output}                         OK
+    ${p2p_go_mac}=                 Get Go MAC                        ${output}
+    Log                            ${p2p_go_mac}
+    Quit Wpa_cli
+    ${p2p_go_interface}=           Get P2P Interface
+    Log                            ${p2p_go_interface}
+    Enter Wpa_cli
+    Write                          interface ${p2p_go_interface}
+    Write                          wps_pbc
+
+    Switch Connection              ${HOST2_ALIAS}
+    Get Hostname
+    Get Interfaces
+    Enter Wpa_cli
+    Write                          interface p2p-dev-wlan0
+    Write                          p2p_connect ${p2p_go_mac} pbc join
+    Set Client Configuration       timeout=10 seconds
+    ${output}=                     Read Until                                     P2P-GROUP-FORMATION-SUCCESS
+    Log                            ${output}
+    Quit Wpa_cli
+    ${p2p_gc_interface}=           Get P2P Interface
+    Log                            ${p2p_gc_interface}
+
+
+    Switch Connection              ${HOST1_ALIAS}
+    Set Client Configuration       timeout=10 seconds
+    ${output}=                     Read Until                        EAPOL-4WAY-HS-COMPLETED
+    Log                            ${output}
+    Quit Wpa_cli
+
+    Ping and Run Iperf             ${p2p_go_interface}               ${p2p_gc_interface}
+
+    [Teardown]                     Remove P2P Group
+
+p2p_autonomous_go_pbc_2g_he_channel_1_gc_pbc_first
+    [Documentation]                Test steps:
+    ...                            start autonomous go
+    ...                            start wps pbc on gc
+    ...                            then start wps pbc on go
+    [Tags]                         case2
+    Switch Connection              ${HOST1_ALIAS}
+    Get Hostname
+    Get Interfaces
+    Enter Wpa_cli
+    Write                          interface p2p-dev-wlan0
+    Write                          p2p_group_add he freq=2412
+    ${output}=                     Read                              delay=1s
+    Log                            ${output}
+    Should Contain                 ${output}                         OK
+    ${p2p_go_mac}=                 Get Go MAC                        ${output}
+    Log                            ${p2p_go_mac}
+    Quit Wpa_cli
+    ${p2p_go_interface}=           Get P2P Interface
+    Log                            ${p2p_go_interface}
+
+    Switch Connection              ${HOST2_ALIAS}
+    Get Hostname
+    Get Interfaces
+    Enter Wpa_cli
+    Write                          interface p2p-dev-wlan0
+    Write                          p2p_connect ${p2p_go_mac} pbc join
+    Quit Wpa_cli
+
+    Switch Connection              ${HOST1_ALIAS}
+    Enter Wpa_cli
+    Write                          interface ${p2p_go_interface}
+    Write                          wps_pbc
+    Set Client Configuration       timeout=10 seconds
+    ${output}=                     Read Until                        EAPOL-4WAY-HS-COMPLETED
+    Log                            ${output}
+    Quit Wpa_cli
+
+    Switch Connection              ${HOST2_ALIAS}
+    ${p2p_gc_interface}=           Get P2P Interface
+    Log                            ${p2p_gc_interface}
+
+    Ping and Run Iperf             ${p2p_go_interface}               ${p2p_gc_interface}
+
+    [Teardown]                     Remove P2P Group
+
+p2p_autonomous_go_pbc_2g_he_channel_all_go_pbc_first
+    [Documentation]                Test steps:
+    ...                            start autonomous go and start wps pbc
+    ...                            then start wps pbc on gc
+    FOR                            ${item}                           IN               @{2GHz_Channel_List}       
+        Switch Connection              ${HOST1_ALIAS}
+        Get Hostname
+        Get Interfaces
+        Enter Wpa_cli
+        Write                          interface p2p-dev-wlan0
+        Write                          p2p_group_add he freq=${item}
+        ${output}=                     Read                              delay=1s
+        Log                            ${output}
+        Should Contain                 ${output}                         OK
+        ${p2p_go_mac}=                 Get Go MAC                        ${output}
+        Log                            ${p2p_go_mac}
+        Quit Wpa_cli
+        ${p2p_go_interface}=           Get P2P Interface
+        Log                            ${p2p_go_interface}
+        Enter Wpa_cli
+        Write                          interface ${p2p_go_interface}
+        Write                          wps_pbc
+
+        Switch Connection              ${HOST2_ALIAS}
+        Get Hostname
+        Get Interfaces
+        Enter Wpa_cli
+        Write                          interface p2p-dev-wlan0
+        Write                          p2p_connect ${p2p_go_mac} pbc join
+        Set Client Configuration       timeout=10 seconds
+        ${output}=                     Read Until                                     P2P-GROUP-FORMATION-SUCCESS
+        Log                            ${output}
+        Quit Wpa_cli
+        ${p2p_gc_interface}=           Get P2P Interface
+        Log                            ${p2p_gc_interface}
+
+
+        Switch Connection              ${HOST1_ALIAS}
+        Set Client Configuration       timeout=10 seconds
+        ${output}=                     Read Until                        EAPOL-4WAY-HS-COMPLETED
+        Log                            ${output}
+        Quit Wpa_cli
+
+        Ping and Run Iperf             ${p2p_go_interface}               ${p2p_gc_interface}
+
+        Remove P2P Group
+    END
+

@@ -1,0 +1,32 @@
+*** Settings ***
+Library     SeleniumLibrary
+Library     SSHLibrary
+Library     String
+Library     OperatingSystem
+Library     DateTime
+
+Resource    ../variables/variables.txt
+Resource    ../keywords/wifi_sta.txt
+Resource    ../keywords/wifi_sap.txt
+Resource    ../keywords/suite_and_test_setup.txt
+
+Suite Setup       sta ccmp256 suite setup
+Suite Teardown    Close All Connections
+
+*** Test Cases ***
+2g ccmp256 test
+    sta1 start sap                         2g    he20    ccmp256    1
+    sta1 sap set static ip1
+    staut ccmp256 connection to sta1 sap
+    staut set static ip1
+    staut print wifi status
+    staut ping sta1 sap ip1
+
+5g ccmp256 test
+    sta1 start sap                         5g    he80    ccmp256    36
+    sta1 sap set static ip1
+    staut ccmp256 connection to sta1 sap
+    staut set static ip1
+    staut print wifi status
+    staut ping sta1 sap ip1
+

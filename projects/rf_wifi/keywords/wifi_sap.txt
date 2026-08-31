@@ -1,0 +1,1173 @@
+*** Keywords ***
+start hostapd
+    [Arguments]        ${conf_file}
+    Execute Command    sudo pkill -9 wpa_supplicant
+    Execute Command    sudo pkill -9 hostapd
+    Execute Command    sudo ${hostapd} ${conf_file} -B
+    ${output}=         Execute Command     ps aux | grep hostapd
+    Log                ${output}
+    Should Contain     ${output}           ${staut_sap_conf}
+
+staut start sap
+    [Arguments]             ${band}    ${mode}    ${security}    ${ch}
+    staut bash shell
+
+    IF                      '${band}' == '2g' and '${mode}' == 'he20' and '${security}' == 'ccmp'
+                            sap conf 2g he20 ccmp    ${ch}
+    ELSE IF                 '${band}' == '2g' and '${mode}' == 'he20' and '${security}' == 'open'
+                            sap conf 2g he20 open    ${ch}
+    ELSE IF                 '${band}' == '2g' and '${mode}' == 'ht20' and '${security}' == 'ccmp'
+                            sap conf 2g ht20 ccmp    ${ch}
+    ELSE IF                 '${band}' == '2g' and '${mode}' == 'g' and '${security}' == 'ccmp'
+                            sap conf 2g g ccmp       ${ch}
+    ELSE IF                 '${band}' == '5g' and '${mode}' == 'he80' and '${security}' == 'ccmp'
+                            sap conf 5g he80 ccmp    ${ch}
+    ELSE IF                 '${band}' == '5g' and '${mode}' == 'he80' and '${security}' == 'open'
+                            sap conf 5g he80 open    ${ch}
+    ELSE IF                 '${band}' == '5g' and '${mode}' == 'he40' and '${security}' == 'ccmp'
+                            sap conf 5g he40 ccmp    ${ch}
+    ELSE IF                 '${band}' == '5g' and '${mode}' == 'he20' and '${security}' == 'ccmp'
+                            sap conf 5g he20 ccmp    ${ch}
+    ELSE IF                 '${band}' == '5g' and '${mode}' == 'vht80' and '${security}' == 'ccmp'
+                            sap conf 5g vht80 ccmp   ${ch}
+    ELSE IF                 '${band}' == '5g' and '${mode}' == 'vht40' and '${security}' == 'ccmp'
+                            sap conf 5g vht40 ccmp   ${ch}
+    ELSE IF                 '${band}' == '5g' and '${mode}' == 'vht20' and '${security}' == 'ccmp'
+                            sap conf 5g vht20 ccmp   ${ch}
+    ELSE IF                 '${band}' == '5g' and '${mode}' == 'ht40' and '${security}' == 'ccmp'
+                            sap conf 5g ht40 ccmp    ${ch}
+    ELSE IF                 '${band}' == '5g' and '${mode}' == 'ht20' and '${security}' == 'ccmp'
+                            sap conf 5g ht20 ccmp    ${ch}
+    ELSE IF                 '${band}' == '5g' and '${mode}' == 'a' and '${security}' == 'ccmp'
+                            sap conf 5g a ccmp       ${ch}
+    END
+
+    start hostapd           ${staut_sap_conf}
+
+sta1 start sap
+    [Arguments]             ${band}    ${mode}    ${security}    ${ch}
+    sta1 bash shell
+
+    IF                      '${band}' == '2g' and '${mode}' == 'he20' and '${security}' == 'ccmp256'
+                            sta1 sap conf 2g he20 ccmp256    ${ch}
+    ELSE IF                 '${band}' == '2g' and '${mode}' == 'he20' and '${security}' == 'owe'
+                            sta1 sap conf 2g he20 owe        ${ch}
+    ELSE IF                 '${band}' == '2g' and '${mode}' == 'he20' and '${security}' == 'owehidden'
+                            sta1 sap conf 2g he20 owe hidden ssid    ${ch}
+    ELSE IF                 '${band}' == '2g' and '${mode}' == 'he20' and '${security}' == 'wpa3ccmp'
+                            sta1 sap conf 2g he20 wpa3ccmp    ${ch}
+    ELSE IF                 '${band}' == '2g' and '${mode}' == 'he20' and '${security}' == 'wpa3ccmphidden'
+                            sta1 sap conf 2g he20 wpa3ccmp hidden ssid    ${ch}
+    ELSE IF                 '${band}' == '2g' and '${mode}' == 'he20' and '${security}' == 'wpa3gcmp256'
+                            sta1 sap conf 2g he20 wpa3gcmp256    ${ch}
+    ELSE IF                 '${band}' == '5g' and '${mode}' == 'he80' and '${security}' == 'ccmp256'
+                            sta1 sap conf 5g he80 ccmp256    ${ch}
+    ELSE IF                 '${band}' == '5g' and '${mode}' == 'he80' and '${security}' == 'owe'
+                            sta1 sap conf 5g he80 owe        ${ch}
+    ELSE IF                 '${band}' == '5g' and '${mode}' == 'he80' and '${security}' == 'owehidden'
+                            sta1 sap conf 5g he80 owe hidden ssid    ${ch}
+    ELSE IF                 '${band}' == '5g' and '${mode}' == 'he80' and '${security}' == 'wpa3ccmp'
+                            sta1 sap conf 5g he80 wpa3ccmp    ${ch}
+    ELSE IF                 '${band}' == '5g' and '${mode}' == 'he80' and '${security}' == 'wpa3ccmphidden'
+                            sta1 sap conf 5g he80 wpa3ccmp hidden ssid    ${ch}
+    ELSE IF                 '${band}' == '5g' and '${mode}' == 'he80' and '${security}' == 'wpa3gcmp256'
+                            sta1 sap conf 5g he80 wpa3gcmp256    ${ch}
+    END
+
+    start hostapd           ${staut_sap_conf}
+
+sap conf 2g he20 ccmp
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${staut_sap_conf}
+
+    Execute Command    echo \"interface=${staut_sap_interface}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${staut_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ssid=${staut_sap_ssid}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"hw_mode=g\" >> ${staut_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${staut_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"ht_capab=[SHORT-GI-20][LDPC]\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ieee80211ax=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"he_bss_color=1\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"auth_algs=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=WPA-PSK\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_pairwise=CCMP\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_passphrase=${staut_sap_passphrase}\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=3600\" >> ${staut_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${staut_sap_conf}
+    Log                ${hostapd_conf}
+
+sta1 sap conf 2g he20 ccmp256
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${sta1_sap_conf}
+
+    Execute Command    echo \"interface=${sta1_sap_interface}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${sta1_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ssid=${sta1_sap_ssid}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"hw_mode=g\" >> ${sta1_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${sta1_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ht_capab=[SHORT-GI-20][LDPC]\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211ax=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"he_bss_color=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"auth_algs=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=WPA-PSK\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_pairwise=CCMP-256\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_passphrase=${sta1_sap_passphrase}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=3600\" >> ${sta1_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${sta1_sap_conf}
+    Log                ${hostapd_conf}
+
+sap conf 2g he20 open
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${staut_sap_conf}
+
+    Execute Command    echo \"interface=${staut_sap_interface}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${staut_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ssid=${staut_sap_ssid}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"hw_mode=g\" >> ${staut_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${staut_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"ht_capab=[SHORT-GI-20][LDPC]\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ieee80211ax=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"he_bss_color=1\" >> ${staut_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${staut_sap_conf}
+    Log                ${hostapd_conf}
+
+sap conf 2g ht20 ccmp
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${staut_sap_conf}
+
+    Execute Command    echo \"interface=${staut_sap_interface}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${staut_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ssid=${staut_sap_ssid}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"hw_mode=g\" >> ${staut_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${staut_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"ht_capab=[SHORT-GI-20][LDPC]\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"auth_algs=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=WPA-PSK\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_pairwise=CCMP\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_passphrase=${staut_sap_passphrase}\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=3600\" >> ${staut_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${staut_sap_conf}
+    Log                ${hostapd_conf}
+
+sap conf 2g g ccmp
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${staut_sap_conf}
+
+    Execute Command    echo \"interface=${staut_sap_interface}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${staut_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ssid=${staut_sap_ssid}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"hw_mode=g\" >> ${staut_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${staut_sap_conf}
+    
+    Execute Command    echo \"auth_algs=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=WPA-PSK\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_pairwise=CCMP\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_passphrase=${staut_sap_passphrase}\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=3600\" >> ${staut_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${staut_sap_conf}
+    Log                ${hostapd_conf}
+
+sap conf 5g he80 ccmp
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${staut_sap_conf}
+
+    Execute Command    echo \"interface=${staut_sap_interface}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${staut_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ssid=${staut_sap_ssid}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"hw_mode=a\" >> ${staut_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${staut_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${staut_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 44 or ${ch} == 149 or ${ch} == 157
+                       Execute Command    echo \"ht_capab=[HT40+][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${staut_sap_conf}
+    ELSE IF            ${ch} == 40 or ${ch} == 48 or ${ch} == 153 or ${ch} == 161
+                       Execute Command    echo \"ht_capab=[HT40-][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${staut_sap_conf}
+    ELSE
+                       LOG                not supported channel
+    END
+
+    Execute Command    echo \"ieee80211ac=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"vht_capab=[SHORT-GI-80][MAX-A-MPDU-LEN-EXP5]\" >> ${staut_sap_conf}
+    Execute Command    echo \"vht_oper_chwidth=1\" >> ${staut_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 40 or ${ch} == 44 or ${ch} == 48
+                       Execute Command    echo \"vht_oper_centr_freq_seg0_idx=42\" >> ${staut_sap_conf}
+    ELSE
+                       Execute Command    echo \"vht_oper_centr_freq_seg0_idx=155\" >> ${staut_sap_conf}
+    END
+
+    Execute Command    echo \"ieee80211ax=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"he_bss_color=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"he_oper_chwidth=1\" >> ${staut_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 40 or ${ch} == 44 or ${ch} == 48
+                       Execute Command    echo \"he_oper_centr_freq_seg0_idx=42\" >> ${staut_sap_conf}
+    ELSE
+                       Execute Command    echo \"he_oper_centr_freq_seg0_idx=155\" >> ${staut_sap_conf}
+    END
+
+    Execute Command    echo \"auth_algs=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=WPA-PSK\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_pairwise=CCMP\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_passphrase=${staut_sap_passphrase}\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=3600\" >> ${staut_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${staut_sap_conf}
+    Log                ${hostapd_conf}
+
+sta1 sap conf 5g he80 ccmp256
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${sta1_sap_conf}
+
+    Execute Command    echo \"interface=${sta1_sap_interface}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${sta1_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ssid=${sta1_sap_ssid}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"hw_mode=a\" >> ${sta1_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${sta1_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${sta1_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 44 or ${ch} == 149 or ${ch} == 157
+                       Execute Command    echo \"ht_capab=[HT40+][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${sta1_sap_conf}
+    ELSE IF            ${ch} == 40 or ${ch} == 48 or ${ch} == 153 or ${ch} == 161
+                       Execute Command    echo \"ht_capab=[HT40-][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${sta1_sap_conf}
+    ELSE
+                       LOG                not supported channel
+    END
+
+    Execute Command    echo \"ieee80211ac=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"vht_capab=[SHORT-GI-80][MAX-A-MPDU-LEN-EXP5]\" >> ${sta1_sap_conf}
+    Execute Command    echo \"vht_oper_chwidth=1\" >> ${sta1_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 40 or ${ch} == 44 or ${ch} == 48
+                       Execute Command    echo \"vht_oper_centr_freq_seg0_idx=42\" >> ${sta1_sap_conf}
+    ELSE
+                       Execute Command    echo \"vht_oper_centr_freq_seg0_idx=155\" >> ${sta1_sap_conf}
+    END
+
+    Execute Command    echo \"ieee80211ax=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"he_bss_color=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"he_oper_chwidth=1\" >> ${sta1_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 40 or ${ch} == 44 or ${ch} == 48
+                       Execute Command    echo \"he_oper_centr_freq_seg0_idx=42\" >> ${sta1_sap_conf}
+    ELSE
+                       Execute Command    echo \"he_oper_centr_freq_seg0_idx=155\" >> ${sta1_sap_conf}
+    END
+
+    Execute Command    echo \"auth_algs=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=WPA-PSK\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_pairwise=CCMP-256\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_passphrase=${sta1_sap_passphrase}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=3600\" >> ${sta1_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${sta1_sap_conf}
+    Log                ${hostapd_conf}
+
+sap conf 5g he80 open
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${staut_sap_conf}
+
+    Execute Command    echo \"interface=${staut_sap_interface}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${staut_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ssid=${staut_sap_ssid}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"hw_mode=a\" >> ${staut_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${staut_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${staut_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 44 or ${ch} == 149 or ${ch} == 157
+                       Execute Command    echo \"ht_capab=[HT40+][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${staut_sap_conf}
+    ELSE IF            ${ch} == 40 or ${ch} == 48 or ${ch} == 153 or ${ch} == 161
+                       Execute Command    echo \"ht_capab=[HT40-][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${staut_sap_conf}
+    ELSE
+                       LOG                not supported channel
+    END
+
+    Execute Command    echo \"ieee80211ac=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"vht_capab=[SHORT-GI-80][MAX-A-MPDU-LEN-EXP5]\" >> ${staut_sap_conf}
+    Execute Command    echo \"vht_oper_chwidth=1\" >> ${staut_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 40 or ${ch} == 44 or ${ch} == 48
+                       Execute Command    echo \"vht_oper_centr_freq_seg0_idx=42\" >> ${staut_sap_conf}
+    ELSE
+                       Execute Command    echo \"vht_oper_centr_freq_seg0_idx=155\" >> ${staut_sap_conf}
+    END
+
+    Execute Command    echo \"ieee80211ax=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"he_bss_color=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"he_oper_chwidth=1\" >> ${staut_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 40 or ${ch} == 44 or ${ch} == 48
+                       Execute Command    echo \"he_oper_centr_freq_seg0_idx=42\" >> ${staut_sap_conf}
+    ELSE
+                       Execute Command    echo \"he_oper_centr_freq_seg0_idx=155\" >> ${staut_sap_conf}
+    END
+
+    ${hostapd_conf}=   Execute Command    cat ${staut_sap_conf}
+    Log                ${hostapd_conf}
+
+sap conf 5g he40 ccmp
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${staut_sap_conf}
+
+    Execute Command    echo \"interface=${staut_sap_interface}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${staut_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ssid=${staut_sap_ssid}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"hw_mode=a\" >> ${staut_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${staut_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${staut_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 44 or ${ch} == 149 or ${ch} == 157
+                       Execute Command    echo \"ht_capab=[HT40+][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${staut_sap_conf}
+    ELSE IF            ${ch} == 40 or ${ch} == 48 or ${ch} == 153 or ${ch} == 161
+                       Execute Command    echo \"ht_capab=[HT40-][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${staut_sap_conf}
+    ELSE
+                       LOG                not supported channel
+    END
+
+    Execute Command    echo \"ieee80211ac=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"vht_capab=[MAX-A-MPDU-LEN-EXP5]\" >> ${staut_sap_conf}
+    Execute Command    echo \"vht_oper_chwidth=0\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ieee80211ax=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"he_bss_color=1\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"auth_algs=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=WPA-PSK\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_pairwise=CCMP\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_passphrase=${staut_sap_passphrase}\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=3600\" >> ${staut_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${staut_sap_conf}
+    Log                ${hostapd_conf}
+
+sap conf 5g he20 ccmp
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${staut_sap_conf}
+
+    Execute Command    echo \"interface=${staut_sap_interface}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${staut_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ssid=${staut_sap_ssid}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"hw_mode=a\" >> ${staut_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${staut_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"ht_capab=[SHORT-GI-20][LDPC]\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ieee80211ac=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"vht_capab=[MAX-A-MPDU-LEN-EXP5]\" >> ${staut_sap_conf}
+    Execute Command    echo \"vht_oper_chwidth=0\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ieee80211ax=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"he_bss_color=1\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"auth_algs=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=WPA-PSK\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_pairwise=CCMP\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_passphrase=${staut_sap_passphrase}\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=3600\" >> ${staut_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${staut_sap_conf}
+    Log                ${hostapd_conf}
+
+sap conf 5g vht80 ccmp
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${staut_sap_conf}
+
+    Execute Command    echo \"interface=${staut_sap_interface}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${staut_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ssid=${staut_sap_ssid}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"hw_mode=a\" >> ${staut_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${staut_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${staut_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 44 or ${ch} == 149 or ${ch} == 157
+                       Execute Command    echo \"ht_capab=[HT40+][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${staut_sap_conf}
+    ELSE IF            ${ch} == 40 or ${ch} == 48 or ${ch} == 153 or ${ch} == 161
+                       Execute Command    echo \"ht_capab=[HT40-][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${staut_sap_conf}
+    ELSE
+                       LOG                not supported channel
+    END
+
+    Execute Command    echo \"ieee80211ac=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"vht_capab=[SHORT-GI-80][MAX-A-MPDU-LEN-EXP5]\" >> ${staut_sap_conf}
+    Execute Command    echo \"vht_oper_chwidth=1\" >> ${staut_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 40 or ${ch} == 44 or ${ch} == 48
+                       Execute Command    echo \"vht_oper_centr_freq_seg0_idx=42\" >> ${staut_sap_conf}
+    ELSE
+                       Execute Command    echo \"vht_oper_centr_freq_seg0_idx=155\" >> ${staut_sap_conf}
+    END
+
+    Execute Command    echo \"auth_algs=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=WPA-PSK\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_pairwise=CCMP\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_passphrase=${staut_sap_passphrase}\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=3600\" >> ${staut_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${staut_sap_conf}
+    Log                ${hostapd_conf}
+
+sap conf 5g vht40 ccmp
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${staut_sap_conf}
+
+    Execute Command    echo \"interface=${staut_sap_interface}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${staut_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ssid=${staut_sap_ssid}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"hw_mode=a\" >> ${staut_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${staut_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${staut_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 44 or ${ch} == 149 or ${ch} == 157
+                       Execute Command    echo \"ht_capab=[HT40+][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${staut_sap_conf}
+    ELSE IF            ${ch} == 40 or ${ch} == 48 or ${ch} == 153 or ${ch} == 161
+                       Execute Command    echo \"ht_capab=[HT40-][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${staut_sap_conf}
+    ELSE
+                       LOG                not supported channel
+    END
+
+    Execute Command    echo \"ieee80211ac=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"vht_capab=[MAX-A-MPDU-LEN-EXP5]\" >> ${staut_sap_conf}
+    Execute Command    echo \"vht_oper_chwidth=0\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"auth_algs=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=WPA-PSK\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_pairwise=CCMP\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_passphrase=${staut_sap_passphrase}\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=3600\" >> ${staut_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${staut_sap_conf}
+    Log                ${hostapd_conf}
+
+sap conf 5g vht20 ccmp
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${staut_sap_conf}
+
+    Execute Command    echo \"interface=${staut_sap_interface}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${staut_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ssid=${staut_sap_ssid}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"hw_mode=a\" >> ${staut_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${staut_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"ht_capab=[SHORT-GI-20][LDPC]\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ieee80211ac=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"vht_capab=[MAX-A-MPDU-LEN-EXP5]\" >> ${staut_sap_conf}
+    Execute Command    echo \"vht_oper_chwidth=0\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"auth_algs=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=WPA-PSK\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_pairwise=CCMP\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_passphrase=${staut_sap_passphrase}\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=3600\" >> ${staut_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${staut_sap_conf}
+    Log                ${hostapd_conf}
+
+sap conf 5g ht40 ccmp
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${staut_sap_conf}
+
+    Execute Command    echo \"interface=${staut_sap_interface}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${staut_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ssid=${staut_sap_ssid}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"hw_mode=a\" >> ${staut_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${staut_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${staut_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 44 or ${ch} == 149 or ${ch} == 157
+                       Execute Command    echo \"ht_capab=[HT40+][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${staut_sap_conf}
+    ELSE IF            ${ch} == 40 or ${ch} == 48 or ${ch} == 153 or ${ch} == 161
+                       Execute Command    echo \"ht_capab=[HT40-][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${staut_sap_conf}
+    ELSE
+                       LOG                not supported channel
+    END
+
+    Execute Command    echo \"auth_algs=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=WPA-PSK\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_pairwise=CCMP\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_passphrase=${staut_sap_passphrase}\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=3600\" >> ${staut_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${staut_sap_conf}
+    Log                ${hostapd_conf}
+
+sap conf 5g ht20 ccmp
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${staut_sap_conf}
+
+    Execute Command    echo \"interface=${staut_sap_interface}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${staut_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ssid=${staut_sap_ssid}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"hw_mode=a\" >> ${staut_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${staut_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"ht_capab=[SHORT-GI-20][LDPC]\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"auth_algs=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=WPA-PSK\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_pairwise=CCMP\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_passphrase=${staut_sap_passphrase}\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=3600\" >> ${staut_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${staut_sap_conf}
+    Log                ${hostapd_conf}
+
+sap conf 5g a ccmp
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${staut_sap_conf}
+
+    Execute Command    echo \"interface=${staut_sap_interface}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${staut_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"ssid=${staut_sap_ssid}\" >> ${staut_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${staut_sap_conf}
+
+    Execute Command    echo \"hw_mode=a\" >> ${staut_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${staut_sap_conf}
+    
+    Execute Command    echo \"auth_algs=1\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=WPA-PSK\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_pairwise=CCMP\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_passphrase=${staut_sap_passphrase}\" >> ${staut_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=3600\" >> ${staut_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${staut_sap_conf}
+    Log                ${hostapd_conf}
+
+sta1 sap conf 2g he20 owe
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${sta1_sap_conf}
+
+    Execute Command    echo \"interface=${sta1_sap_interface}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${sta1_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ssid=${sta1_sap_ssid}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"hw_mode=g\" >> ${sta1_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${sta1_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ht_capab=[SHORT-GI-20][LDPC]\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211ax=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"he_bss_color=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211w=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"auth_algs=3\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=OWE\" >> ${sta1_sap_conf}
+    Execute Command    echo \"rsn_pairwise=CCMP\" >> ${sta1_sap_conf}
+    Execute Command    echo \"group_cipher=CCMP\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=60\" >> ${sta1_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${sta1_sap_conf}
+    Log                ${hostapd_conf}
+
+sta1 sap conf 2g he20 wpa3ccmp
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${sta1_sap_conf}
+
+    Execute Command    echo \"interface=${sta1_sap_interface}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${sta1_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ssid=${sta1_sap_ssid}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"hw_mode=g\" >> ${sta1_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${sta1_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ht_capab=[SHORT-GI-20][LDPC]\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211ax=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"he_bss_color=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211w=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"auth_algs=3\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=SAE\" >> ${sta1_sap_conf}
+    Execute Command    echo \"rsn_pairwise=CCMP\" >> ${sta1_sap_conf}
+    Execute Command    echo \"group_cipher=CCMP\" >> ${sta1_sap_conf}
+    Execute Command    echo \"sae_password=${staut_sap_passphrase}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"sae_groups=19\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=60\" >> ${sta1_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${sta1_sap_conf}
+    Log                ${hostapd_conf}
+
+sta1 sap conf 2g he20 wpa3ccmp hidden ssid
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${sta1_sap_conf}
+
+    Execute Command    echo \"interface=${sta1_sap_interface}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${sta1_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ssid=${sta1_sap_ssid}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"hw_mode=g\" >> ${sta1_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${sta1_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ht_capab=[SHORT-GI-20][LDPC]\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211ax=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"he_bss_color=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211w=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"auth_algs=3\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=SAE\" >> ${sta1_sap_conf}
+    Execute Command    echo \"rsn_pairwise=CCMP\" >> ${sta1_sap_conf}
+    Execute Command    echo \"group_cipher=CCMP\" >> ${sta1_sap_conf}
+    Execute Command    echo \"sae_password=${staut_sap_passphrase}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"sae_groups=19\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=60\" >> ${sta1_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${sta1_sap_conf}
+    Log                ${hostapd_conf}
+
+sta1 sap conf 2g he20 wpa3gcmp256
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${sta1_sap_conf}
+
+    Execute Command    echo \"interface=${sta1_sap_interface}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${sta1_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ssid=${sta1_sap_ssid}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"hw_mode=g\" >> ${sta1_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${sta1_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ht_capab=[SHORT-GI-20][LDPC]\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211ax=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"he_bss_color=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211w=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"auth_algs=3\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=SAE\" >> ${sta1_sap_conf}
+    Execute Command    echo \"rsn_pairwise=GCMP-256\" >> ${sta1_sap_conf}
+    Execute Command    echo \"group_cipher=GCMP-256\" >> ${sta1_sap_conf}
+    Execute Command    echo \"sae_password=${staut_sap_passphrase}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"sae_groups=19\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=60\" >> ${sta1_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${sta1_sap_conf}
+    Log                ${hostapd_conf}
+
+sta1 sap conf 2g he20 owe hidden ssid
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${sta1_sap_conf}
+
+    Execute Command    echo \"interface=${sta1_sap_interface}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${sta1_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ssid=${sta1_sap_ssid}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"hw_mode=g\" >> ${sta1_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${sta1_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ht_capab=[SHORT-GI-20][LDPC]\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211ax=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"he_bss_color=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211w=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"auth_algs=3\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=OWE\" >> ${sta1_sap_conf}
+    Execute Command    echo \"rsn_pairwise=CCMP\" >> ${sta1_sap_conf}
+    Execute Command    echo \"group_cipher=CCMP\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=60\" >> ${sta1_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${sta1_sap_conf}
+    Log                ${hostapd_conf}
+
+sta1 sap conf 5g he80 owe
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${sta1_sap_conf}
+
+    Execute Command    echo \"interface=${sta1_sap_interface}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${sta1_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ssid=${sta1_sap_ssid}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"hw_mode=a\" >> ${sta1_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${sta1_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${sta1_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 44 or ${ch} == 149 or ${ch} == 157
+                       Execute Command    echo \"ht_capab=[HT40+][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${sta1_sap_conf}
+    ELSE IF            ${ch} == 40 or ${ch} == 48 or ${ch} == 153 or ${ch} == 161
+                       Execute Command    echo \"ht_capab=[HT40-][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${sta1_sap_conf}
+    ELSE
+                       LOG                not supported channel
+    END
+
+    Execute Command    echo \"ieee80211ac=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"vht_capab=[SHORT-GI-80][MAX-A-MPDU-LEN-EXP5]\" >> ${sta1_sap_conf}
+    Execute Command    echo \"vht_oper_chwidth=1\" >> ${sta1_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 40 or ${ch} == 44 or ${ch} == 48
+                       Execute Command    echo \"vht_oper_centr_freq_seg0_idx=42\" >> ${sta1_sap_conf}
+    ELSE
+                       Execute Command    echo \"vht_oper_centr_freq_seg0_idx=155\" >> ${sta1_sap_conf}
+    END
+
+    Execute Command    echo \"ieee80211ax=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"he_bss_color=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"he_oper_chwidth=1\" >> ${sta1_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 40 or ${ch} == 44 or ${ch} == 48
+                       Execute Command    echo \"he_oper_centr_freq_seg0_idx=42\" >> ${sta1_sap_conf}
+    ELSE
+                       Execute Command    echo \"he_oper_centr_freq_seg0_idx=155\" >> ${sta1_sap_conf}
+    END
+
+    Execute Command    echo \"ieee80211w=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"auth_algs=3\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=OWE\" >> ${sta1_sap_conf}
+    Execute Command    echo \"rsn_pairwise=CCMP\" >> ${sta1_sap_conf}
+    Execute Command    echo \"group_cipher=CCMP\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=60\" >> ${sta1_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${sta1_sap_conf}
+    Log                ${hostapd_conf}
+
+sta1 sap conf 5g he80 owe hidden ssid
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${sta1_sap_conf}
+
+    Execute Command    echo \"interface=${sta1_sap_interface}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${sta1_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ssid=${sta1_sap_ssid}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"hw_mode=a\" >> ${sta1_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${sta1_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${sta1_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 44 or ${ch} == 149 or ${ch} == 157
+                       Execute Command    echo \"ht_capab=[HT40+][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${sta1_sap_conf}
+    ELSE IF            ${ch} == 40 or ${ch} == 48 or ${ch} == 153 or ${ch} == 161
+                       Execute Command    echo \"ht_capab=[HT40-][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${sta1_sap_conf}
+    ELSE
+                       LOG                not supported channel
+    END
+
+    Execute Command    echo \"ieee80211ac=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"vht_capab=[SHORT-GI-80][MAX-A-MPDU-LEN-EXP5]\" >> ${sta1_sap_conf}
+    Execute Command    echo \"vht_oper_chwidth=1\" >> ${sta1_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 40 or ${ch} == 44 or ${ch} == 48
+                       Execute Command    echo \"vht_oper_centr_freq_seg0_idx=42\" >> ${sta1_sap_conf}
+    ELSE
+                       Execute Command    echo \"vht_oper_centr_freq_seg0_idx=155\" >> ${sta1_sap_conf}
+    END
+
+    Execute Command    echo \"ieee80211ax=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"he_bss_color=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"he_oper_chwidth=1\" >> ${sta1_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 40 or ${ch} == 44 or ${ch} == 48
+                       Execute Command    echo \"he_oper_centr_freq_seg0_idx=42\" >> ${sta1_sap_conf}
+    ELSE
+                       Execute Command    echo \"he_oper_centr_freq_seg0_idx=155\" >> ${sta1_sap_conf}
+    END
+
+    Execute Command    echo \"ieee80211w=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"auth_algs=3\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=OWE\" >> ${sta1_sap_conf}
+    Execute Command    echo \"rsn_pairwise=CCMP\" >> ${sta1_sap_conf}
+    Execute Command    echo \"group_cipher=CCMP\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=60\" >> ${sta1_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${sta1_sap_conf}
+    Log                ${hostapd_conf}
+
+sta1 sap conf 5g he80 wpa3ccmp
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${sta1_sap_conf}
+
+    Execute Command    echo \"interface=${sta1_sap_interface}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${sta1_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ssid=${sta1_sap_ssid}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"hw_mode=a\" >> ${sta1_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${sta1_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${sta1_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 44 or ${ch} == 149 or ${ch} == 157
+                       Execute Command    echo \"ht_capab=[HT40+][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${sta1_sap_conf}
+    ELSE IF            ${ch} == 40 or ${ch} == 48 or ${ch} == 153 or ${ch} == 161
+                       Execute Command    echo \"ht_capab=[HT40-][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${sta1_sap_conf}
+    ELSE
+                       LOG                not supported channel
+    END
+
+    Execute Command    echo \"ieee80211ac=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"vht_capab=[SHORT-GI-80][MAX-A-MPDU-LEN-EXP5]\" >> ${sta1_sap_conf}
+    Execute Command    echo \"vht_oper_chwidth=1\" >> ${sta1_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 40 or ${ch} == 44 or ${ch} == 48
+                       Execute Command    echo \"vht_oper_centr_freq_seg0_idx=42\" >> ${sta1_sap_conf}
+    ELSE
+                       Execute Command    echo \"vht_oper_centr_freq_seg0_idx=155\" >> ${sta1_sap_conf}
+    END
+
+    Execute Command    echo \"ieee80211ax=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"he_bss_color=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"he_oper_chwidth=1\" >> ${sta1_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 40 or ${ch} == 44 or ${ch} == 48
+                       Execute Command    echo \"he_oper_centr_freq_seg0_idx=42\" >> ${sta1_sap_conf}
+    ELSE
+                       Execute Command    echo \"he_oper_centr_freq_seg0_idx=155\" >> ${sta1_sap_conf}
+    END
+
+    Execute Command    echo \"ieee80211w=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"auth_algs=3\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=SAE\" >> ${sta1_sap_conf}
+    Execute Command    echo \"rsn_pairwise=CCMP\" >> ${sta1_sap_conf}
+    Execute Command    echo \"group_cipher=CCMP\" >> ${sta1_sap_conf}
+    Execute Command    echo \"sae_password=${staut_sap_passphrase}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"sae_groups=19\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=60\" >> ${sta1_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${sta1_sap_conf}
+    Log                ${hostapd_conf}
+
+sta1 sap conf 5g he80 wpa3ccmp hidden ssid
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${sta1_sap_conf}
+
+    Execute Command    echo \"interface=${sta1_sap_interface}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${sta1_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ssid=${sta1_sap_ssid}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"hw_mode=a\" >> ${sta1_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${sta1_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${sta1_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 44 or ${ch} == 149 or ${ch} == 157
+                       Execute Command    echo \"ht_capab=[HT40+][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${sta1_sap_conf}
+    ELSE IF            ${ch} == 40 or ${ch} == 48 or ${ch} == 153 or ${ch} == 161
+                       Execute Command    echo \"ht_capab=[HT40-][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${sta1_sap_conf}
+    ELSE
+                       LOG                not supported channel
+    END
+
+    Execute Command    echo \"ieee80211ac=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"vht_capab=[SHORT-GI-80][MAX-A-MPDU-LEN-EXP5]\" >> ${sta1_sap_conf}
+    Execute Command    echo \"vht_oper_chwidth=1\" >> ${sta1_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 40 or ${ch} == 44 or ${ch} == 48
+                       Execute Command    echo \"vht_oper_centr_freq_seg0_idx=42\" >> ${sta1_sap_conf}
+    ELSE
+                       Execute Command    echo \"vht_oper_centr_freq_seg0_idx=155\" >> ${sta1_sap_conf}
+    END
+
+    Execute Command    echo \"ieee80211ax=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"he_bss_color=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"he_oper_chwidth=1\" >> ${sta1_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 40 or ${ch} == 44 or ${ch} == 48
+                       Execute Command    echo \"he_oper_centr_freq_seg0_idx=42\" >> ${sta1_sap_conf}
+    ELSE
+                       Execute Command    echo \"he_oper_centr_freq_seg0_idx=155\" >> ${sta1_sap_conf}
+    END
+
+    Execute Command    echo \"ieee80211w=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"auth_algs=3\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=SAE\" >> ${sta1_sap_conf}
+    Execute Command    echo \"rsn_pairwise=CCMP\" >> ${sta1_sap_conf}
+    Execute Command    echo \"group_cipher=CCMP\" >> ${sta1_sap_conf}
+    Execute Command    echo \"sae_password=${staut_sap_passphrase}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"sae_groups=19\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=60\" >> ${sta1_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${sta1_sap_conf}
+    Log                ${hostapd_conf}
+
+sta1 sap conf 5g he80 wpa3gcmp256
+    [Arguments]        ${ch}
+
+    Execute Command    rm -f ${sta1_sap_conf}
+
+    Execute Command    echo \"interface=${sta1_sap_interface}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ctrl_interface=/var/run/hostapd\" >> ${sta1_sap_conf}
+    Execute Command    echo \"driver=nl80211\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ssid=${sta1_sap_ssid}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"ignore_broadcast_ssid=0\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"hw_mode=a\" >> ${sta1_sap_conf}
+    Execute Command    echo \"channel=${ch}\" >> ${sta1_sap_conf}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${sta1_sap_conf}
+
+    Execute Command    echo \"ieee80211n=1\" >> ${sta1_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 44 or ${ch} == 149 or ${ch} == 157
+                       Execute Command    echo \"ht_capab=[HT40+][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${sta1_sap_conf}
+    ELSE IF            ${ch} == 40 or ${ch} == 48 or ${ch} == 153 or ${ch} == 161
+                       Execute Command    echo \"ht_capab=[HT40-][SHORT-GI-20][SHORT-GI-40][LDPC]\" >> ${sta1_sap_conf}
+    ELSE
+                       LOG                not supported channel
+    END
+
+    Execute Command    echo \"ieee80211ac=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"vht_capab=[SHORT-GI-80][MAX-A-MPDU-LEN-EXP5]\" >> ${sta1_sap_conf}
+    Execute Command    echo \"vht_oper_chwidth=1\" >> ${sta1_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 40 or ${ch} == 44 or ${ch} == 48
+                       Execute Command    echo \"vht_oper_centr_freq_seg0_idx=42\" >> ${sta1_sap_conf}
+    ELSE
+                       Execute Command    echo \"vht_oper_centr_freq_seg0_idx=155\" >> ${sta1_sap_conf}
+    END
+
+    Execute Command    echo \"ieee80211ax=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"he_bss_color=1\" >> ${sta1_sap_conf}
+    Execute Command    echo \"he_oper_chwidth=1\" >> ${sta1_sap_conf}
+    IF                 ${ch} == 36 or ${ch} == 40 or ${ch} == 44 or ${ch} == 48
+                       Execute Command    echo \"he_oper_centr_freq_seg0_idx=42\" >> ${sta1_sap_conf}
+    ELSE
+                       Execute Command    echo \"he_oper_centr_freq_seg0_idx=155\" >> ${sta1_sap_conf}
+    END
+
+    Execute Command    echo \"ieee80211w=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"auth_algs=3\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa=2\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_key_mgmt=SAE\" >> ${sta1_sap_conf}
+    Execute Command    echo \"rsn_pairwise=GCMP-256\" >> ${sta1_sap_conf}
+    Execute Command    echo \"group_cipher=GCMP-256\" >> ${sta1_sap_conf}
+    Execute Command    echo \"sae_password=${staut_sap_passphrase}\" >> ${sta1_sap_conf}
+    Execute Command    echo \"sae_groups=19\" >> ${sta1_sap_conf}
+    Execute Command    echo \"wpa_group_rekey=60\" >> ${sta1_sap_conf}
+
+    ${hostapd_conf}=   Execute Command    cat ${sta1_sap_conf}
+    Log                ${hostapd_conf}
+
+sap conf file create
+    [Arguments]        ${interface}    ${ctrl_interface}    ${ssid}    ${hidden_ssid}
+    ...                ${hw_mode}      ${channel}
+    ...                ${n_mode}       ${ht40}
+    ...                ${ac_mode}
+    ...                ${ax_mode}
+    ...                ${security}     ${passphrase}        ${rekey_interval}
+    ...                ${conf_file}
+
+    Execute Command    rm -f ${conf_file}
+
+    Execute Command    echo \"interface=${interface}\" >> ${conf_file}
+    Execute Command    echo \"ctrl_interface=/var/run/${ctrl_interface}\" >> ${conf_file}
+    Execute Command    echo \"driver=nl80211\" >> ${conf_file}
+
+    Execute Command    echo \"ssid=${ssid}\" >> ${conf_file}
+    Execute Command    echo \"ignore_broadcast_ssid=${hidden_ssid}\" >> ${conf_file}
+
+    Execute Command    echo \"hw_mode=${hw_mode}\" >> ${conf_file}
+    Execute Command    echo \"channel=${channel}\" >> ${conf_file}
+    
+    Execute Command    echo \"wmm_enabled=1\" >> ${conf_file}
+
+    IF                 ${n_mode} == 1 and ${ht40} == 0
+                       Execute Command    echo \"ieee80211n=1\" >> ${conf_file}
+                       Execute Command    echo \"ht_capab=[SHORT-GI-20][LDPC]\" >> ${conf_file}
+    END
+
+    IF                 ${ax_mode} == 1
+                       Execute Command    echo \"ieee80211ax=1\" >> ${conf_file}
+                       Execute Command    echo \"he_bss_color=1\" >> ${conf_file}
+    END
+
+    IF                 "${security}" == "open"
+                       LOG                security mode is open, no need to set.
+    ELSE IF            "${security}" == "ccmp"
+                       Execute Command    echo \"auth_algs=1\" >> ${conf_file}
+                       Execute Command    echo \"wpa=2\" >> ${conf_file}
+                       Execute Command    echo \"wpa_key_mgmt=WPA-PSK\" >> ${conf_file}
+                       Execute Command    echo \"wpa_pairwise=CCMP\" >> ${conf_file}
+                       Execute Command    echo \"wpa_passphrase=${passphrase}\" >> ${conf_file}
+                       Execute Command    echo \"wpa_group_rekey=${rekey_interval}\" >> ${conf_file}
+    END
+
+    ${hostapd_conf}=   Execute Command    cat ${conf_file}
+    Log                ${hostapd_conf}

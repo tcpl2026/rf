@@ -1,0 +1,28 @@
+*** Keywords ***
+get current time
+    ${current_time}=    Get Current Date    result_format=%Y%m%d-%H%M%S
+    Log    Current time: ${current_time}
+    RETURN    ${current_time}
+
+capture driver log
+    ssh login              ${staut_control_ip}    ${staut_user}    ${staut_pwd}    ${driver_log_bash}
+    ${runtime}=            get current time
+    Set Variable           ${driver_log_file}     driver_log_${runtime}.txt
+    Log                    driver log file: ${driver_log_file}
+    Execute Command        sudo pkill -9 dmesg
+    Execute Command        sudo dmesg -w > ~/${driver_log_file}
+
+capture firmware log
+    ssh login              ${serialpc_ip}          ${serialpc_user}    ${serialpc_pwd}    ${firmware_log_bash}
+    ${runtime}=            get current time
+    Set Variable           ${firmware_log_file}     firmware_log_${runtime}.txt
+    Log                    firmware log file: ${firmware_log_file}
+    Execute Command        sudo pkill -9 minicom
+    Execute Command        sudo minicom -b ${band_rate} -D ${serial_dev} -C ~/${firmware_log_file}
+
+set throughput record file
+    ${runtime}=           get current time
+    Set Suite Variable    ${throughput_record_file}    ${staut_model}_throughput_result_${runtime}.txt
+    Log                   throughput test result file: ${throughput_record_file}
+    Log To Console        throughput test result file: ${throughput_record_file}
+

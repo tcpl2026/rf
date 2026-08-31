@@ -1,0 +1,569 @@
+*** Keywords ***
+login asus router
+    Open Browser                          url=${ap_url}                         browser=${browser}
+    Maximize Browser Window
+    Wait Until Page Contains Element      id:login_username
+    Input Text                            id:login_username                     ${ap_user}
+    Input Password                        name:login_passwd                     ${ap_password}
+    IF                                    '${ap_model}' == 'rt-ax88u'
+                                          Click Element                         class:button
+    ELSE IF                               '${ap_model}' == 'tuf-ax3000'
+                                          Click Element                         xpath://*[@id="button"]
+    END
+
+    Wait Until Page Contains Element      id:NM_connect_title
+
+    set language to english
+
+logout asus router
+    Click Element                         xpath: //*[contains(text(), "Logout")]
+    Close Browser 
+
+set language to english
+    ${language}                            Get Text                     id:selected_lang
+    Log                                    ${language}
+    IF                                     '${language}' != 'English'
+                                           Mouse Over                   id:selected_lang
+                                           Sleep                        1s
+                                           Click Element                xpath: //*[contains(text(), "English")]
+                                           Sleep                        3s
+    END
+
+goto wireless general page
+    Click Element                                 id:Advanced_Wireless_Content_menu
+    Wait Until Page Contains Element              name:wl_unit
+
+goto wireless professional page
+    goto wireless general page
+    Click Element                                 id:Advanced_WAdvanced_Content_tab
+    Wait Until Page Contains Element              name:wl_unit
+
+set band
+    [Documentation]                 0:2g, 1:5g
+    [Arguments]                     ${band}                         
+    ${currentband}=                 Get Selected List Label                       name:wl_unit
+    IF                              '${band}' == '2g'
+                                    IF                                            '${currentband}' != '2.4 GHz'
+                                                                                  Select From List By Value                name:wl_unit           0
+                                                                                  Reload Page
+                                                                                  Wait Until Page Contains Element         name:wl_unit
+                                    END
+                                                                                  
+    ELSE IF                         '${band}' == '5g'
+                                    IF                                            '${currentband}' != '5 GHz'
+                                                                                  Select From List By Value                name:wl_unit           1
+                                                                                  Reload Page
+                                                                                  Wait Until Page Contains Element         name:wl_unit
+                                    END
+    END
+
+set band to 2g
+    set band                                      2g
+
+set band to 5g
+    set band                                      5g
+
+set bandwidth
+    [Documentation]                               1:20MHz, 2:40MHz, 3:80MHz
+    [Arguments]                                   ${bw}
+    ${currentbandwidth}=                          Get Selected List Label         name:wl_bw
+    IF                                            '${bw}' == '20m'
+                                                  IF                              '${currentbandwidth}' != '20MHz'
+                                                                                  Select From List By Value          name:wl_bw     1
+                                                  END
+    ELSE IF                                       '${bw}' == '40m'
+                                                  IF                              '${currentbandwidth}' != '40MHz'
+                                                                                  Select From List By Value          name:wl_bw     2
+                                                  END
+    ELSE IF                                       '${bw}' == '80m'
+                                                  IF                              '${currentbandwidth}' != '80MHz'
+                                                                                  Select From List By Value          name:wl_bw     3
+                                                  END
+    END
+
+set channel
+    [Documentation]                               2g: 1-13 5g:36-161, 20M:36, 40M:36l, 80M:36/80
+    [Arguments]                                   ${channel}
+    ${currentchannel}=                            Get Selected List Value                              name:wl_channel
+    #${currentchannel}=                            Get Selected List Label                              name:wl_channel
+    IF                                            '${currentchannel}' != '${channel}'
+                                                  Select From List By Value                            name:wl_channel               ${channel}
+    END
+
+apply settings
+    #TRY
+    #                                              Click Button                                  id:applyButton1
+    #                                              TRY
+    #                                                                                            Handle Alert             action=ACCEPT    timeout=0.5 s
+    #                                              EXCEPT
+    #                                                                                            Log                      No alert box
+    #                                              END
+    #                                              TRY
+    #                                                                                            Handle Alert             action=ACCEPT    timeout=0.5 s
+    #                                              EXCEPT
+    #                                                                                            Log                      No alert box
+    #                                              END
+    #EXCEPT
+    #                                              Click Button                                  name:button
+    #                                              TRY
+    #                                                                                            Handle Alert             action=ACCEPT    timeout=0.5 s
+    #                                              EXCEPT
+    #                                                                                            Log                      No alert box
+    #                                              END
+    #                                              TRY
+    #                                                                                            Handle Alert             action=ACCEPT    timeout=0.5 s
+    #                                              EXCEPT
+    #                                                                                            Log                      No alert box
+    #                                              END
+    #END
+    Click Button                                  xpath://input[@value="Apply"]
+    TRY
+                                                  Handle Alert             action=ACCEPT    timeout=0.5 s
+    EXCEPT
+                                                  Log                      No alert box
+    END
+    TRY
+                                                  Handle Alert             action=ACCEPT    timeout=0.5 s
+    EXCEPT
+                                                  Log                      No alert box
+    END
+    Sleep                                         0.5s
+    Wait Until Element Is Not Visible             xpath://span[contains(text(),'Applying Settings')]    timeout=30
+    Sleep                                         3s
+
+wifi setting for throughput test
+    [Arguments]                                   ${band}                       ${bw}         ${channel}
+    login asus router
+
+    goto wireless general page
+    set band                                      ${band}
+    set bandwidth                                 ${bw}
+    set channel                                   ${channel}
+    apply settings
+
+    logout asus router
+
+enable wifi6 mode
+    [Arguments]                                   ${band}
+    set band                                      ${band}
+
+    TRY
+                                                  ${wireless_mode}=                             Get Selected List Label        name:wl_nmode_x
+                                                  Log                                           ${wireless_mode}
+                                                  IF                                            '${wireless_mode}' != 'Auto'
+                                                                                                Select From List By Value      name:wl_nmode_x                0
+                                                  END
+    EXCEPT
+                                                  Select From List By Value                     name:wl_nmode_x               0
+    END
+
+    ${wifi6_switch}=                              Get Selected List Label                       name:wl_11ax
+    Log                                           ${wifi6_switch}
+    IF                                            '${wifi6_switch}' != 'Enable'
+                                                  Select From List By Value                     name:wl_11ax                   1
+    END
+
+    apply settings
+
+    ${wireless_mode}=                             Get Selected List Label        name:wl_nmode_x
+    ${wifi6_switch}=                              Get Selected List Label        name:wl_11ax
+    Log Many                                      ${wireless_mode}               ${wifi6_switch}
+    Should Be Equal                               ${wireless_mode}               Auto
+    Should Be Equal                               ${wifi6_switch}                Enable
+
+asus router enable wifi6
+    login asus router
+    goto wireless general page
+
+    enable wifi6 mode                             2g
+    enable wifi6 mode                             5g
+
+    logout asus router
+    
+
+asus router enable wifi5
+    login asus router
+    goto wireless general page
+
+    set band to 5g
+
+    TRY
+                                                  ${wireless_mode}=            Get Selected List Label        name:wl_nmode_x
+                                                  Log                          ${wireless_mode}
+                                                  IF                           '${wireless_mode}' != 'Auto'
+                                                                               Select From List By Value      name:wl_nmode_x                0
+                                                  END
+    EXCEPT
+                                                  select From List By Value    name:wl_nmode_x                0
+    END
+
+    ${wifi6_switch}=                              Get Selected List Label      name:wl_11ax
+    Log                                           ${wifi6_switch}
+    IF                                            '${wifi6_switch}' == 'Enable'
+                                                  Select From List By Value                     name:wl_11ax                   0
+    END
+
+    apply settings
+
+    ${wireless_mode}=                             Get Selected List Label        name:wl_nmode_x
+    ${wifi6_switch}=                              Get Selected List Label        name:wl_11ax
+    Log Many                                      ${wireless_mode}               ${wifi6_switch}
+    Should Be Equal                               ${wireless_mode}               Auto
+    Should Be Equal                               ${wifi6_switch}                Disable
+
+    logout asus router
+
+asus router enable wifi4
+    asus router enable ssh server
+    Sleep                                         5s
+
+    Open Connection                               ${ap_ip}
+    Login                                         ${ap_user}                      ${ap_password}
+    Execute Command                               nvram set wl0_nmode_x=1
+    Execute Command                               nvram set wl1_nmode_x=1
+    Execute Command                               nvram commit
+    Execute Command                               service restart_wireless
+
+    Close Connection
+
+enable legacy mode
+    [Arguments]                                   ${band}
+    set band                                      ${band}
+
+    TRY
+                                                  ${wireless_mode}=                             Get Selected List Label        name:wl_nmode_x
+                                                  Log                                           ${wireless_mode}
+                                                  IF                                            '${wireless_mode}' != 'Legacy'
+                                                                                                Select From List By Value      name:wl_nmode_x    2
+                                                  END
+    EXCEPT
+                                                  Select From List By Value                     name:wl_nmode_x                2
+    END
+
+    apply settings
+
+    ${wireless_mode}=                             Get Selected List Label        name:wl_nmode_x
+    Log                                           ${wireless_mode}
+    Should Be Equal                               ${wireless_mode}               Legacy
+
+asus router enable legacy
+    login asus router
+    goto wireless general page
+
+    enable legacy mode    2g
+    enable legacy mode    5g
+
+    logout asus router
+    
+
+asus router enable ssh server
+    login asus router
+
+    Click Element                                 id:Advanced_OperationMode_Content_menu
+    Wait Until Page Contains Element              id:Advanced_System_Content_tab
+    Click Element                                 id:Advanced_System_Content_tab
+    Wait Until Page Contains Element              id:sshd_enable_tr
+    ${ssh_allowed}                                Get Selected List Label         name:sshd_enable
+    Log                                           ${ssh_allowed}
+    IF                                            '${ssh_allowed}' != 'LAN only'
+                                                  Select From List By value       name:sshd_enable    2
+                                                  Sleep                           1s
+    END
+    ${ssh_port}                                   Get Value                       id:sshd_port
+    Log                                           ${ssh_port}
+    IF                                            '${ssh_port}' != '22'
+                                                  Input Text                      id:sshd_port    22
+    END
+                                                  
+    apply settings
+
+    logout asus router
+
+security mode open
+    [Arguments]                                   ${band}
+    set band                                      ${band}
+
+    ${currentauthmode}                            Get Selected List Label        name:wl_auth_mode_x
+    IF                                            '${currentauthmode}' != 'Open System'
+                                                  Select From List By value      name:wl_auth_mode_x    open
+    END
+
+    apply settings
+
+asus router open
+    login asus router
+    goto wireless general page
+
+    security mode open                            2g
+    security mode open                            5g
+
+    logout asus router
+
+security mode wep
+    [Arguments]                                   ${band}    ${authmode}    ${wepmode}    ${wepindex}
+    set band                                      ${band}
+    
+    ${currentauthmode}                            Get Selected List Label        name:wl_auth_mode_x
+    Log                                           ${currentauthmode}
+    IF                                            '${authmode}' == 'open'
+                                                  IF                                            '${currentauthmode}' != 'Open System'
+                                                                                                Select From List By value      name:wl_auth_mode_x    open
+                                                  END
+    ELSE IF                                       '${authmode}' == 'shared'
+                                                  IF                                            '${currentauthmode}' != 'Shared Key'
+                                                                                                Select From List By value      name:wl_auth_mode_x    shared
+                                                  END
+    END
+     
+    ${currentwep}                                 Get Selected List Label        name:wl_wep_x
+    Log                                           ${currentwep}
+    IF                                            '${wepmode}' == 'wep64'
+                                                  IF                                            '${currentauthmode}' != 'WEP-64bits'
+                                                                                                Select From List By value      name:wl_wep_x    1
+                                                  END
+    ELSE IF                                       '${wepmode}' == 'wep128'
+                                                  IF                                            '${currentauthmode}' != 'WEP-128bits'
+                                                                                                Select From List By value      name:wl_wep_x    2
+                                                  END
+    END
+
+    Sleep                                         0.5s
+
+    Select From List By value                     name:wl_key                                  ${wepindex}
+
+    Clear Element Text                            wl_key1
+    Clear Element Text                            wl_key2
+    Clear Element Text                            wl_key3
+    Clear Element Text                            wl_key4
+
+    IF                                            '${wepmode}' == 'wep64'
+                                                  Input Text                                    name:wl_key${wepindex}        ${wep64key}
+    ELSE IF                                       '${wepmode}' == 'wep128'
+                                                  Input Text                                    name:wl_key${wepindex}        ${wep128key}
+    END
+
+    apply settings
+
+asus router wep
+    [Arguments]                                   ${authmode}    ${wepmode}    ${wepindex}
+    login asus router
+    goto wireless general page
+
+    security mode wep                             2g    ${authmode}    ${wepmode}    ${wepindex}
+    security mode wep                             5g    ${authmode}    ${wepmode}    ${wepindex}
+
+    logout asus router
+
+security mode tkip
+    [Arguments]                                   ${band}
+    set band                                      ${band}
+    
+    ${currentauthmode}                            Get Selected List Label                       name:wl_auth_mode_x
+    Log                                           ${currentauthmode}
+    IF                                            '${currentauthmode}' != 'WPA/WPA2-Personal'
+                                                  Select From List By value                     name:wl_auth_mode_x    pskpsk2
+    END
+     
+    ${currentcrypto}                              Get Selected List Label                       name:wl_crypto
+    Log                                           ${currentcrypto}
+    IF                                            '${currentcrypto}' != 'TKIP+AES'
+                                                  Select From List By value                     name:wl_crypto    tkip+aes
+    END
+
+    Input Text                                    name:wl_wpa_psk                               ${passphrase}
+
+    apply settings
+
+asus router tkip
+    login asus router
+    goto wireless general page
+
+    security mode tkip    2g
+    security mode tkip    5g
+
+    logout asus router
+
+security mode ccmp
+    [Arguments]                                   ${band}
+    set band                                      ${band}
+    
+    ${currentauthmode}                            Get Selected List Label                       name:wl_auth_mode_x
+    Log                                           ${currentauthmode}
+    IF                                            '${currentauthmode}' != 'WPA2-Personal'
+                                                  Select From List By value                     name:wl_auth_mode_x    psk2
+    END
+     
+    ${currentcrypto}                              Get Selected List Label                       name:wl_crypto
+    Log                                           ${currentcrypto}
+    IF                                            '${currentcrypto}' != 'AES'
+                                                  Select From List By value                     name:wl_crypto    aes
+    END
+
+    Input Text                                    name:wl_wpa_psk                               ${passphrase}
+
+    apply settings
+
+asus router ccmp
+    login asus router
+    goto wireless general page
+
+    security mode ccmp    2g
+    security mode ccmp    5g
+
+    logout asus router
+
+security mode ccmpwpa3
+    [Arguments]                                   ${band}
+    set band                                      ${band}
+    
+    ${currentauthmode}                            Get Selected List Label                       name:wl_auth_mode_x
+    Log                                           ${currentauthmode}
+    IF                                            '${currentauthmode}' != 'WPA3-Personal'
+                                                  Select From List By value                     name:wl_auth_mode_x    sae
+    END
+     
+    ${currentcrypto}                              Get Selected List Label                       name:wl_crypto
+    Log                                           ${currentcrypto}
+    IF                                            '${currentcrypto}' != 'AES'
+                                                  Select From List By value                     name:wl_crypto    aes
+    END
+
+    Input Text                                    name:wl_wpa_psk                               ${passphrase}
+
+    apply settings
+
+asus router ccmpwpa3
+    login asus router
+    goto wireless general page
+
+    security mode ccmpwpa3    2g
+    security mode ccmpwpa3    5g
+
+    logout asus router
+
+pmf setting
+    [Arguments]    ${band}    ${opt}
+    set band    ${band}
+    ${currentmode}    Get Selected List Label    name:wl_mfp
+    Log    ${currentmode}
+    Log    will set pmf mode to ${opt}
+    IF    '${currentmode}' != '${opt}'
+           Select From List By Label    name:wl_mfp    ${opt}
+    END 
+
+    apply settings
+
+    Capture Element Screenshot    name:wl_mfp
+
+asus router pmf
+    [Documentation]    opt is Disable, Capable, Required
+    [Arguments]    ${opt}
+
+    login asus router
+    goto wireless general page
+
+    pmf setting    2g    ${opt}
+    pmf setting    5g    ${opt}
+
+    logout asus router
+
+beacon interval setting
+    [Arguments]    ${band}    ${beacon_interval}
+    set band       ${band}
+    Input Text     name:wl_bcn    ${beacon_interval}
+
+    apply settings     
+
+    Capture Page Screenshot
+    Capture Element Screenshot    name:wl_bcn
+
+asus router beacon interval
+    [Arguments]    ${band}    ${beacon_interval}
+    login asus router
+    goto wireless professional page
+
+    beacon interval setting    ${band}    ${beacon_interval}
+
+    logout asus router
+
+############## factory default and reset asus router
+reset asus router
+    Click Element                                 id:Advanced_OperationMode_Content_menu
+    Wait Until Page Contains Element              id:Advanced_SettingBackup_Content_tab
+    Click Element                                 id:Advanced_SettingBackup_Content_tab
+    Wait Until Page Contains Element              id:restoreInit
+    Select Checkbox                               id:restoreInit
+    Click Element                                 name:action1
+    Sleep                                         1s
+    Handle Alert 	                          action=ACCEPT
+    Wait Until Page Contains Element              id:welcomeTitle                               timeout=120
+
+setup asus router
+    Page Should Contain Element                   id:welcomeTitle
+    set language to english
+
+    Click Element                                 id:welcome_button
+    Sleep                                         0.5s
+    Click Element                                 id:desktop_manual_applyBtn
+    Sleep                                         0.5s
+    IF                                            '${ap_model}' == 'rt-ax88u'
+                                                  Click Element                                 xpath: //*[contains(text(), "WAN Port")]
+    Sleep                                         0.5s
+    END
+    Click Element                                 xpath: //*[contains(text(), "Automatic IP")]
+    Sleep                                         0.5s
+    Click Element                                 xpath: //*[contains(text(), "Separate 2.4 GHz and 5 GHz")]
+    Sleep                                         1s
+    Input Text                                    id:wireless_ssid_0           ${ssid_2g}
+    Input Password                                id:wireless_key_0            ${passphrase}
+    Input Text                                    id:wireless_ssid_1           ${ssid_5g}
+    Input Password                                id:wireless_key_1            ${passphrase}
+    Sleep                                         1s
+    Click Element                                 //*[@class='desktop_applyBtn btn_wireless_apply']
+    Sleep                                         1s
+    Input Text                                    id:http_username             ${ap_user}
+    Input Password                                id:http_passwd               ${ap_password}
+    Input Password                                id:http_passwd_confirm       ${ap_password}
+    Click Element                                 //*[@class='desktop_applyBtn btn_login_apply']      
+    Sleep                                         1s
+    Handle Alert 	                          action=ACCEPT
+
+    Wait Until Page Contains Element              id:NM_connect_title          timeout=60
+
+set 2g 20m ch1 5g 80m ch36
+    goto wireless general page
+    set band to 2g
+    set bandwidth                                 20m
+    set channel                                   1
+    
+    apply settings
+    
+    set band to 5g
+    Unselect Checkbox                             id:enable_160mhz
+    set channel                                   36/80
+
+    apply settings
+
+reset and setup asus router
+    Open Browser                          url=${ap_url}                      browser=${browser}
+    Maximize Browser Window
+    Sleep                                 1s
+    TRY
+                                          ${output}=                         Page Should Contain Element        id:login_username
+                                          Log                                ${output}
+                                          IF                                 '${output}' == 'None'
+                                                                             Log                                asus ap is not factory default, reset it firstly.
+                                                                             Close Browser
+                                                                             login asus router
+                                                                             reset asus router
+                                          END
+    EXCEPT
+                                          LOG                                asus router already reset, continue to setup
+    END
+    setup asus router
+    set 2g 20m ch1 5g 80m ch36
+    
+    logout asus router
+
+    asus router enable ssh server
+

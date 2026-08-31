@@ -1,0 +1,14 @@
+# test.robot
+
+*** Settings ***
+Documentation    Robot Framework Test Case
+
+*** Test Cases ***
+case 1
+    ${myChar}    Set Variable    Robot Framework
+    Log    ${myChar}
+    Should Be Equal As Strings    ${myChar}    Robot Framework
+
+# run test case
+
+robot test.robot

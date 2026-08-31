@@ -1,0 +1,96 @@
+*** Settings ***
+Library     SeleniumLibrary
+Library     SSHLibrary
+Library     String
+Library     OperatingSystem
+Library     DateTime
+
+Resource    ../variables/variables.txt
+Resource    ../keywords/wifi_sta.txt
+Resource    ../keywords/wifi_sap.txt
+Resource    ../keywords/suite_and_test_setup.txt
+
+Suite Setup       sta wpa3 suite setup
+Suite Teardown    Close All Connections
+
+*** Test Cases ***
+2g owe test
+    sta1 start sap                         2g    he20    owe    1
+    sta1 sap set static ip1
+    staut owe connection to sta1 sap
+    staut set static ip1
+    staut print wifi status
+    staut ping sta1 sap ip1
+
+2g owe hidden ssid test
+    sta1 start sap                         2g    he20    owehidden    3
+    sta1 sap set static ip1
+    staut owehidden connection to sta1 sap
+    staut set static ip1
+    staut print wifi status
+    staut ping sta1 sap ip1
+
+5g owe test
+    sta1 start sap                         5g    he80    owe    36
+    sta1 sap set static ip1
+    staut owe connection to sta1 sap
+    staut set static ip1
+    staut print wifi status
+    staut ping sta1 sap ip1
+
+5g owe hidden test
+    sta1 start sap                         5g    he80    owehidden    36
+    sta1 sap set static ip1
+    staut owehidden connection to sta1 sap
+    staut set static ip1
+    staut print wifi status
+    staut ping sta1 sap ip1
+
+2g wpa3ccmp test
+    sta1 start sap                         2g    he20    wpa3ccmp    1
+    sta1 sap set static ip1
+    staut wpa3ccmp connection to sta1 sap
+    staut set static ip1
+    staut print wifi status
+    staut ping sta1 sap ip1
+
+2g wpa3ccmp hidden ssid test
+    sta1 start sap                         2g    he20    wpa3ccmphidden    3
+    sta1 sap set static ip1
+    staut wpa3ccmphidden connection to sta1 sap
+    staut set static ip1
+    staut print wifi status
+    staut ping sta1 sap ip1
+
+2g wpa3gcmp256 test
+    sta1 start sap                         2g    he20    wpa3gcmp256    7
+    sta1 sap set static ip1
+    staut wpa3gcmp256 connection to sta1 sap
+    staut set static ip1
+    staut print wifi status
+    staut ping sta1 sap ip1
+
+5g wpa3ccmp test
+    sta1 start sap                         5g    he80    wpa3ccmp    36
+    sta1 sap set static ip1
+    staut wpa3ccmp connection to sta1 sap
+    staut set static ip1
+    staut print wifi status
+    staut ping sta1 sap ip1
+
+5g wpa3ccmphidden hidden test
+    sta1 start sap                         5g    he80    wpa3ccmphidden    48
+    sta1 sap set static ip1
+    staut wpa3ccmphidden connection to sta1 sap
+    staut set static ip1
+    staut print wifi status
+    staut ping sta1 sap ip1
+
+5g wpa3gcmp256 test
+    sta1 start sap                         5g    he80    wpa3gcmp256    149
+    sta1 sap set static ip1
+    staut wpa3gcmp256 connection to sta1 sap
+    staut set static ip1
+    staut print wifi status
+    staut ping sta1 sap ip1
+

@@ -1,0 +1,39 @@
+*** Settings ***
+Library     SeleniumLibrary
+Library     SSHLibrary
+Library     String
+Library     OperatingSystem
+Library     DateTime
+
+Resource    ../variables/variables.txt
+Resource    ../keywords/wifi_sta.txt
+Resource    ../keywords/asus_router_config.txt
+Resource    ../keywords/suite_and_test_setup.txt
+
+Suite Setup       sta pmfwpa3 suite setup
+Suite Teardown    Close All Connections
+
+*** Test Cases ***
+ap pmf required sta pmf required
+    asus router pmf    Required
+
+    staut ccmpwpa3pmfr connection to aput    ${ssid_2g}
+    staut get ip
+    staut print wifi status
+    staut ping aput
+
+    staut ccmpwpa3pmfr connection to aput    ${ssid_5g}
+    staut get ip
+    staut print wifi status
+    staut ping aput
+
+ap pmf required sta pmf capable
+    staut ccmpwpa3pmfc connection to aput    ${ssid_2g}
+    staut get ip
+    staut print wifi status
+    staut ping aput
+
+    staut ccmpwpa3pmfc connection to aput    ${ssid_5g}
+    staut get ip
+    staut print wifi status
+    staut ping aput

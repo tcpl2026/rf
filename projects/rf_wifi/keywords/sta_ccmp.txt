@@ -1,0 +1,9 @@
+*** Keywords ***
+sta ccmp test
+    [Arguments]        ${ssid}
+
+    staut connection to aput    ccmp    ${ssid}
+    staut get ip
+    staut print wifi status
+    staut ping aput
+

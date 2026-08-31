@@ -1,0 +1,135 @@
+*** Settings ***
+Library    SSHLibrary
+Library    OperatingSystem
+
+*** Variables ***
+${host_lan_ip}                   1.1.1.2
+${user}                          user
+${password}                      123
+
+${wlan_interface}                wlp6s0
+${wlan_gateway}                  10.12.50.254
+${bt_interface}                  hci0
+
+${test_times}                    500
+
+${wlan_and_bt_check_flag}        0
+${lan_pc_offline_check_flag}     0
+
+${reboot_command}                sudo /sbin/reboot
+${wait_reboot_recovery}          70s
+${s3_command}                    sudo rtcwake -m mem -s 10
+${wait_s3_recovery}              30s
+${s4_command}                    sudo rtcwake -m disk -s 40
+${wait_s4_recovery}              90s
+
+${ping_wlan_gateway}             ping ${wlan_gateway} -c 5
+${ping_wlan_pass_string}         bytes from ${wlan_gateway}
+
+${ping_host_lan_ip}              ping ${host_lan_ip} -c 30
+
+*** Test Cases ***
+Reboot Test
+    [Documentation]         Run reboot test ${test_times} times
+    [tags]                  reboot
+    FOR                     ${item}                       IN RANGE                      ${test_times}
+                            Log To Console                ${\n}
+                            Log To Console                ========================== Test Run: ${item} ============================
+
+                            Log to Console                Start rebooting
+                            run command                   ${reboot_command}              ${wait_reboot_recovery} 
+
+                            check wlan and bt works normally
+    END
+
+S3 Test
+    [Documentation]         Run s3 test ${test_times} times
+    [tags]                  s3
+    FOR                     ${item}                       IN RANGE                      ${test_times}
+                            Log To Console                ${\n}
+                            Log To Console                ========================== Test Run: ${item} ============================
+
+                            Log to Console                Start s3
+                            run command                   ${s3_command}              ${wait_s3_recovery} 
+
+                            check wlan and bt works normally
+    END
+
+S4 Test
+    [Documentation]         Run s4 test ${test_times} times
+    [tags]                  s4
+    FOR                     ${item}                       IN RANGE                       ${test_times}
+                            Log To Console                ${\n}
+                            Log To Console                ========================== Test Run: ${item} ============================
+
+                            Log to Console                Start s4
+                            run command                   ${s4_command}              ${wait_s4_recovery} 
+
+                            check wlan and bt works normally
+    END
+
+*** Keywords ***
+check wlan and bt
+    Open Connection               ${host_lan_ip}
+    Login                         ${user}                       ${password}
+
+    ${output}=                    Execute Command               ip addr
+    Log                           ${output}
+    Log To Console                ${output}
+    Should Contain                ${output}                     ${wlan_interface}
+
+    ${output}=                    Execute Command               hciconfig
+    Log                           ${output}
+    Log To Console                ${output}
+    Should Contain                ${output}                     ${bt_interface}
+
+    ${output}=                    Execute Command               ${ping_wlan_gateway}
+    Log                           ${output}
+    Log To Console                ${output}
+    Should Contain                ${output}                     ${ping_wlan_pass_string}
+
+    Write                         bluetoothctl
+    Sleep                         0.1s
+    Write                         scan on
+    Set Client Configuration      timeout=10 seconds
+    ${output}=                    Read Until                    Device
+    Log                           ${output}
+    Log To Console                ${output}
+    Write                         ${\n}
+    Write                         scan off
+    ${output}=                    Read                          loglevel=DEBUG                    delay=1s
+    Write                         quit
+    Log                           ${output}
+    Log To Console                ${output}
+                            
+    Close Connection
+
+check wlan and bt works normally
+    IF                            ${wlan_and_bt_check_flag} == 1
+                                  check wlan and bt
+    END
+
+run command
+    [Arguments]                   ${command}                    ${sleep_time}
+    Open Connection               ${host_lan_ip}
+    Login                         ${user}                       ${password}
+
+    Log To Console                Command is: ${command}
+    Start Command                 ${command}
+
+    Log To Console                close ssh connection
+    Close Connection
+
+    IF                            ${lan_pc_offline_check_flag} == 1
+                                  lan pc offline check
+    END
+
+    Log To Console                sleep ${sleep_time}
+    Sleep                         ${sleep_time}
+
+lan pc offline check
+    ${output}=                    Run                           ${ping_host_lan_ip}
+    Log                           ${output}
+    Log To Console                ${output}
+    Should Not Contain            ${output}                     ${SPACE}0% packet loss
+

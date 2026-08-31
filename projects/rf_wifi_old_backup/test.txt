@@ -1,0 +1,12 @@
+*** Settings ***
+
+*** Variables ***
+${NAME}                Cabins
+${PASSWORD}            123
+${wlan_interface_name}    wlan0
+${p2p_interface_name}     p2p-dev-${wlan_interface_name}
+
+*** Test Cases ***
+TC 01
+    Log To Console        ${wlan_interface_name}
+    Log To Console        ${p2p_interface_name}

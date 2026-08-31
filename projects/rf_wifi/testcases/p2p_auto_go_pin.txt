@@ -1,0 +1,84 @@
+*** Settings ***
+Library              SSHLibrary
+Library              String
+Library              Collections
+
+Resource             ../variables/variables.txt
+Resource             ../keywords/wifi_sta.txt
+Resource             ../keywords/p2p.txt
+Resource             ../keywords/suite_and_test_setup.txt
+
+Suite Setup          p2p suite setup
+Suite Teardown       Close All Connections
+
+Test Teardown        Remove P2P Group
+
+*** Test Cases ***
+p2p_autonomous_go_pin_2g_he_channel_1_use_gc_pin
+    P2P PBC Autonomous Go Enter Gc PIN In Go                p2p_group_add he freq=2412
+
+p2p_autonomous_go_pin_2g_he_channel_all_use_gc_pin
+    FOR                            ${item}                                                 IN               @{2g_freq_list}
+                                   P2P PBC Autonomous Go Enter Gc PIN In Go                p2p_group_add he freq=${item}
+                                   Remove P2P Group
+    END
+
+p2p_autonomous_go_pin_2g_ht_channel_1_use_gc_pin
+    P2P PBC Autonomous Go Enter Gc PIN In Go                p2p_group_add freq=2412
+
+p2p_autonomous_go_pin_2g_ht_channel_all_use_gc_pin
+    FOR                            ${item}                                                 IN               @{2g_freq_list}
+                                   P2P PBC Autonomous Go Enter Gc PIN In Go                p2p_group_add freq=${item}
+                                   Remove P2P Group
+    END
+
+p2p_autonomous_go_pin_5g_he_channel_161_use_gc_pin
+    P2P PBC Autonomous Go Enter Gc PIN In Go                p2p_group_add vht he freq=5805
+
+p2p_autonomous_go_pin_5g_he_channel_all_use_gc_pin
+    FOR                            ${item}                                                 IN               @{5g_freq_list}
+                                   P2P PBC Autonomous Go Enter Gc PIN In Go                p2p_group_add vht he freq=${item}
+                                   Remove P2P Group
+    END
+
+p2p_autonomous_go_pin_5g_vht_channel_161_use_gc_pin
+    P2P PBC Autonomous Go Enter Gc PIN In Go                p2p_group_add vht freq=5805
+
+p2p_autonomous_go_pin_5g_vht_channel_all_use_gc_pin
+    FOR                            ${item}                                                 IN               @{5g_freq_list}
+                                   P2P PBC Autonomous Go Enter Gc PIN In Go                p2p_group_add vht freq=${item}
+                                   Remove P2P Group
+    END
+
+p2p_autonomous_go_pin_5g_ht40_channel_161_use_gc_pin
+    P2P PBC Autonomous Go Enter Gc PIN In Go                p2p_group_add ht40 freq=5805
+
+p2p_autonomous_go_pin_5g_ht40_channel_all_use_gc_pin
+    FOR                            ${item}                                                 IN               @{5g_freq_list}
+                                   P2P PBC Autonomous Go Enter Gc PIN In Go                p2p_group_add ht40 freq=${item}
+                                   Remove P2P Group
+    END
+
+p2p_autonomous_go_pin_5g_ht20_channel_161_use_gc_pin
+    P2P PBC Autonomous Go Enter Gc PIN In Go                p2p_group_add freq=5805
+
+p2p_autonomous_go_pin_5g_ht20_channel_all_use_gc_pin
+    FOR                            ${item}                                                 IN               @{5g_freq_list}
+                                   P2P PBC Autonomous Go Enter Gc PIN In Go                p2p_group_add freq=${item}
+                                   Remove P2P Group
+    END
+
+p2p_autonomous_go_pin_2g_he_channel_1_use_gc_pin_100_times
+    [Tags]                         stability
+    FOR                            ${item}                                                 IN RANGE             100
+                                   P2P PBC Autonomous Go Enter Gc PIN In Go                p2p_group_add he freq=2412
+                                   Remove P2P Group
+    END
+
+p2p_autonomous_go_pin_5g_he_channel_161_use_gc_pin_100_times
+    [Tags]                         stability
+    FOR                            ${item}                                                 IN RANGE             100
+                                   P2P PBC Autonomous Go Enter Gc PIN In Go                 p2p_group_add vht he freq=5805
+                                   Remove P2P Group
+    END
+

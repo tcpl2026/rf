@@ -1,0 +1,122 @@
+*** Settings ***
+Library          SSHLibrary
+Library          String
+Library          SeleniumLibrary
+
+Resource         ../variables/variables.txt
+Resource         ../keywords/wifi_sta.txt
+Resource         ../keywords/suite_and_test_setup.txt
+Resource         ../keywords/asus_router_config.txt
+
+Test Setup       stability_sta test setup
+Test Teardown    Close All Connections
+
+*** Test Cases ***
+reload driver ${stability_run_times} times
+    staut connection to aput    ccmp               ${ssid_2g}
+    FOR                         ${index}           IN RANGE     ${stability_run_times}
+                                staut driver reload
+                                staut scan test
+    END
+
+connect ping disconnect ${stability_run_times} times
+    staut connection to aput    ccmp               ${ssid_2g}
+    ${ip}=                      staut get ip
+    Log                         ${ip}
+
+    FOR                     ${index}                   IN RANGE                                                   ${stability_run_times}
+                            Execute Command            sudo ${wpa_cli} -i ${staut_wifi_interface} disconnect
+                            Sleep                      3s
+                            ${output}=                 Execute Command                                            sudo ${wpa_cli} -i ${staut_wifi_interface} status
+                            Log                        ${output}
+                            Should Contain             ${output}                                                  wpa_state=DISCONNECTED
+                            Execute Command            sudo ${wpa_cli} -i ${staut_wifi_interface} reconnect
+                            staut wait wifi connected
+                            staut ping aput
+    END
+
+5g he80 tcp bi-directional traffic
+    staut connection to aput    ccmp               ${ssid_5g}
+    ${ip}=                      staut get ip
+    Log                         ${ip}
+
+    Execute Command         sudo killall -9 iperf3
+    Execute Command         iperf3 -s -p 9001 -i 1 -D
+
+
+    ssh login               ${lanpc_control_ip}        ${lanpc_user}      ${lanpc_pwd}
+    Execute Command         sudo killall -9 iperf3
+    Execute Command         iperf3 -i 1 -t ${stability_iperf_time} -b 100M -P 10 -p 9001 --bidir -c ${ip}
+    ping test               ${lanpc_lan_interface}     ${ip}
+
+2.4g he20 udp bi-directional traffic
+    staut connection to aput    ccmp               ${ssid_2g}
+    ${ip}=                      staut get ip
+    Log                         ${ip}
+
+    Execute Command         sudo killall -9 iperf3
+    Execute Command         iperf3 -s -p 9001 -i 1 -D
+
+    ssh login               ${lanpc_control_ip}        ${lanpc_user}      ${lanpc_pwd}
+    Execute Command         sudo killall -9 iperf3
+    Execute Command         iperf3 -i 1 -t ${stability_iperf_time} -b 100M -P 5 -p 9001 --bidir -c ${ip} -u
+    ping test               ${lanpc_lan_interface}     ${ip}
+
+2.4g he20 associated idle
+    staut connection to aput    ccmp               ${ssid_2g}
+    ${ip}=                      staut get ip
+    Log                         ${ip}
+
+    staut wpa_cli shell
+    ${before_idle_output}=      Read
+    Log                         ${before_idle_output}
+    Log To Console              \n========= Idle for ${stability_idle_time} =========
+    Sleep                       ${stability_idle_time}
+    ${output}=                  Read
+    Log                         ${output}
+    Should Not Contain Any      ${output}     CTRL-EVENT-DISCONNECTED    CTRL-EVENT-NETWORK-NOT-FOUND    #2.4g has beacon loss issue, so not monitor it.
+
+    staut ping aput
+    
+5g he80 associated idle
+    staut connection to aput    ccmp               ${ssid_5g}
+    ${ip}=                      staut get ip
+    Log                         ${ip}
+
+    staut wpa_cli shell
+    ${before_idle_output}=      Read
+    Log                         ${before_idle_output}
+    Log To Console              \n========= Idle for ${stability_idle_time} =========
+    Sleep                       ${stability_idle_time}
+    ${output}=                  Read
+    Log                         ${output}
+    Should Not Contain Any      ${output}                           CTRL-EVENT-BEACON-LOSS    CTRL-EVENT-DISCONNECTED    CTRL-EVENT-NETWORK-NOT-FOUND
+
+    staut ping aput
+    
+2g ping test
+    staut connection to aput    ccmp               ${ssid_2g}
+    ${ip}=                      staut get ip
+    Log                         ${ip}
+
+
+    ssh login               ${lanpc_control_ip}        ${lanpc_user}              ${lanpc_pwd}
+    FOR                     ${index}                   IN RANGE                   ${stability_ping_times}
+                            ping test                  ${lanpc_lan_interface}     ${ip}                        ${stability_ping_count}
+    END
+
+    staut ping aput
+
+5g ping test
+    staut connection to aput    ccmp               ${ssid_5g}
+    ${ip}=                      staut get ip
+    Log                         ${ip}
+
+
+    ssh login               ${lanpc_control_ip}        ${lanpc_user}              ${lanpc_pwd}
+    FOR                     ${index}                   IN RANGE                   ${stability_ping_times}
+                            ping test                  ${lanpc_lan_interface}     ${ip}                        ${stability_ping_count}
+    END
+
+    staut ping aput
+

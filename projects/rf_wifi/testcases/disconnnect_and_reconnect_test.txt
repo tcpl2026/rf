@@ -1,0 +1,54 @@
+*** Settings ***
+Library     SSHLibrary
+Library     String
+Library     OperatingSystem
+Library     SeleniumLibrary
+
+Resource    ../variables/variables.txt
+Resource    ../keywords/suite_and_test_setup.txt
+Resource    ../keywords/wifi_sta.txt
+Resource    ../keywords/asus_router_config.txt
+
+Suite Setup       disconnect and reconnect setup
+Suite Teardown    Close All Connections
+
+*** Test Cases ***
+connect 2g ssid
+    staut connection to aput    ccmp            ${ssid_2g}
+    staut get ip
+
+2.4GHz disconnect reconnect test
+    staut wpa_cli shell
+    FOR               ${item}                   IN RANGE           1000
+                      Log To Console            \n========= This is the ${item} time test =========\n
+                      disconnect and reconnect
+    END
+
+connect 5g ssid
+    staut connection to aput    ccmp            ${ssid_5g}
+
+5GHz disconnect reconnect test
+    staut wpa_cli shell
+    FOR               ${item}                   IN RANGE           1000
+                      Log To Console            \n========= This is the ${item} time test =========\n
+                      disconnect and reconnect
+    END
+
+*** Keywords ***
+disconnect and reconnect
+    Log To Console                 \n========= Disconnect STAUT from AP =========\n
+    Write                          disconnect
+    ${output}=                     Read             delay=3s
+    Log To Console                 ${output}
+    Log                            ${output}
+    Should Contain                 ${output}        CTRL-EVENT-DISCONNECTED
+    Log                            ${output}
+    Log To Console                 \n========= Reconnect STAUT to AP =========\n
+    Read
+    Write                          reconnect
+    ${output}=                     Read             delay=10s
+    Log To Console                 ${output}
+    Log                            ${output}
+    Should Contain                 ${output}        CTRL-EVENT-CONNECTED
+    #Should Not Contain Any         ${output}        CTRL-EVENT-DISCONNECTED    Handshake failed    CTRL-EVENT-SSID-TEMP-DISABLED
+    Should Not Contain Any         ${output}        Handshake failed    WRONG_KEY    into ignore list    CTRL-EVENT-SSID-TEMP-DISABLED

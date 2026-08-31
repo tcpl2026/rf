@@ -1,0 +1,61 @@
+*** Settings ***
+Library              SSHLibrary
+Library              String
+Library              Collections
+
+Resource             ../p2p_variables.txt
+Resource             ../p2p_keywords.txt
+
+Suite Setup          Login Test PC and Start Wpa_supplicant and Enter Wpa_cli
+Suite Teardown       Stop Wpa_supplicant and Close All Connections
+
+Test Teardown        Remove P2P Group
+
+*** Test Cases ***
+p2p_negotiated_go_pbc_2g_he_channel_1
+    [tags]                         case1
+    P2P PBC Negotiated Go          he go_intent=15 freq=2412
+
+p2p_negotiated_go_pbc_2g_he_channel_all
+    [tags]                         2g_he_all
+    FOR                            ${item}                                                 IN               @{2GHz_Channel_List}
+                                   P2P PBC Negotiated Go                                   he go_intent=15 freq=${item}
+                                   Remove P2P Group
+    END
+
+p2p_negotiated_go_pbc_5g_he_channel_36
+    P2P PBC Negotiated Go          vht he go_intent=15 freq=5180
+
+p2p_negotiated_go_pbc_5g_he_channel_all
+    [tags]                         5g_he_all
+    FOR                            ${item}                                                 IN               @{5GHz_Channel_List}
+                                   P2P PBC Negotiated Go                                   vht he go_intent=15 freq=${item}
+                                   Remove P2P Group
+    END
+
+p2p_negotiated_go_pbc_5g_vht_channel_36
+    P2P PBC Negotiated Go          vht go_intent=15 freq=5180
+
+p2p_negotiated_go_pbc_5g_vht_channel_all
+    FOR                            ${item}                                                 IN               @{5GHz_Channel_List}
+                                   P2P PBC Negotiated Go                                   vht go_intent=15 freq=${item}
+                                   Remove P2P Group
+    END
+
+p2p_negotiated_go_pbc_5g_ht40_channel_36
+    P2P PBC Negotiated Go          ht40 go_intent=15 freq=5180
+
+p2p_negotiated_go_pbc_5g_ht40_channel_all
+    FOR                            ${item}                                                 IN               @{5GHz_Channel_List}
+                                   P2P PBC Negotiated Go                                   ht40 go_intent=15 freq=${item}
+                                   Remove P2P Group
+    END
+
+p2p_negotiated_go_pbc_5g_ht20_channel_36
+    P2P PBC Negotiated Go          go_intent=15 freq=5180
+
+p2p_negotiated_go_pbc_5g_ht20_channel_all
+    FOR                            ${item}                                                 IN               @{5GHz_Channel_List}
+                                   P2P PBC Negotiated Go                                   go_intent=15 freq=${item}
+                                   Remove P2P Group
+    END

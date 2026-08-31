@@ -1,0 +1,10 @@
+*** Keywords ***
+sta different beacon interval
+    [Arguments]        ${band}    ${interval}    ${ssid}
+
+    asus router beacon interval    ${band}    ${interval}
+    staut connection to aput    ccmp    ${ssid}
+    staut get ip
+    staut print wifi status
+    staut ping aput
+

@@ -1,0 +1,144 @@
+*** Settings ***
+Resource    ./bash_and_wpa_cli_shell.txt
+
+*** Keywords ***
+throughput he suite setup
+    open staut bash shell
+    open staut wpa_cli shell
+
+    open lanpc bash shell
+
+    set throughput record file
+
+    reset and setup asus router
+    asus router enable wifi6
+
+throughput vht suite setup
+    open staut bash shell
+    open staut wpa_cli shell
+
+    open lanpc bash shell
+
+    set throughput record file
+
+    reset and setup asus router
+    asus router enable wifi5
+
+throughput ht suite setup
+    open staut bash shell
+    open staut wpa_cli shell
+
+    open lanpc bash shell
+
+    set throughput record file
+
+    reset and setup asus router
+    asus router enable wifi4
+
+different_channel_connection suite setup
+    open staut bash shell
+    open staut wpa_cli shell
+
+    open lanpc bash shell
+
+    reset and setup asus router
+    asus router enable wifi6
+    asus router ccmp
+
+stability_sta test setup
+    open staut bash shell
+    open staut wpa_cli shell
+
+    open lanpc bash shell
+
+    reset and setup asus router
+
+stability_sap test setup
+    open staut bash shell
+
+    open sta1 bash shell
+    open sta1 wpa_cli shell
+
+disconnect and reconnect setup
+    open staut bash shell
+    open staut wpa_cli shell
+
+    reset and setup asus router
+
+sap throughput suite setup
+    open staut bash shell
+
+    open sta1 bash shell
+    open sta1 wpa_cli shell
+
+    set throughput record file
+
+sta wep suite setup
+    open staut bash shell
+    open staut wpa_cli shell
+
+    reset and setup asus router
+    asus router enable legacy
+
+sta tkip suite setup
+    open staut bash shell
+    open staut wpa_cli shell
+
+    reset and setup asus router
+    asus router tkip
+
+sta ccmp suite setup
+    open staut bash shell
+    open staut wpa_cli shell
+
+    reset and setup asus router
+    asus router ccmp 
+
+sta different beacon interval suite setup
+    open staut bash shell
+    open staut wpa_cli shell
+
+    reset and setup asus router
+
+sta ccmp256 suite setup
+    open staut bash shell
+    open staut wpa_cli shell
+
+    open sta1 bash shell
+
+sta wpa3 suite setup
+    open staut bash shell
+    open staut wpa_cli shell
+
+    open sta1 bash shell
+
+sta pmf suite setup
+    open staut bash shell
+    open staut wpa_cli shell
+
+    open lanpc bash shell
+
+    reset and setup asus router
+    asus router enable wifi6
+    asus router ccmp
+
+sta pmfwpa3 suite setup
+    open staut bash shell
+    open staut wpa_cli shell
+
+    open lanpc bash shell
+
+    reset and setup asus router
+    asus router enable wifi6
+    asus router ccmpwpa3
+
+p2p suite setup
+    open staut bash shell
+    open staut wpa_cli shell
+
+    open sta1 bash shell
+    open sta1 wpa_cli shell
+
+    staut reset ip
+    sta1 reset ip
+

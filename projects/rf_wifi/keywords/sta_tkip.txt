@@ -1,0 +1,9 @@
+*** Keywords ***
+sta tkip test
+    [Arguments]        ${ssid}
+
+    staut tkip connection to aput     ${ssid}
+    staut get ip
+    staut print wifi status
+    staut ping aput
+

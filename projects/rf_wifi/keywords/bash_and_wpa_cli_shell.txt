@@ -1,0 +1,64 @@
+*** Keywords ***
+ssh login
+    [Arguments]        ${host}    ${user}        ${password}    ${alias}=default
+    Open Connection    ${host}    alias=${alias}
+    Login              ${user}    ${password}
+
+open staut bash shell
+    ssh login          ${staut_control_ip}    ${staut_user}    ${staut_pwd}    ${staut_bash}
+
+open sta1 bash shell
+    ssh login          ${sta1_control_ip}    ${sta1_user}    ${sta1_pwd}    ${sta1_bash}
+
+open sta2 bash shell
+    ssh login          ${sta2_control_ip}    ${sta2_user}    ${sta2_pwd}    ${sta2_bash}
+
+open lanpc bash shell
+    ssh login          ${lanpc_control_ip}    ${lanpc_user}    ${lanpc_pwd}    ${lanpc_bash}
+
+start wpa_supplicant
+    [Arguments]        ${interface}
+    Execute Command    sudo pkill -9 wpa_supplicant
+    Execute Command    sudo pkill -9 hostapd
+    Execute Command    sudo ${wpa_supplicant} -i ${interface} -C /var/run/wpa_supplicant -B
+
+open staut wpa_cli shell
+    ssh login               ${staut_control_ip}    ${staut_user}    ${staut_pwd}    ${staut_wpa_cli}
+    start wpa_supplicant    ${staut_wifi_interface}
+    Sleep                   1s
+    Write                   sudo ${wpa_cli} -i ${staut_wifi_interface}
+
+open sta1 wpa_cli shell
+    ssh login               ${sta1_control_ip}    ${sta1_user}    ${sta1_pwd}    ${sta1_wpa_cli}
+    start_wpa_supplicant    ${sta1_wifi_interface}
+    Sleep                   1s
+    Write                   sudo ${wpa_cli} -i ${sta1_wifi_interface}
+
+open sta2 wpa_cli shell
+    ssh login               ${sta2_control_ip}    ${sta2_user}    ${sta2_pwd}    ${sta2_wpa_cli}
+    start_wpa_supplicant    ${sta2_wifi_interface}
+    Sleep                   1s
+    Write                   sudo ${wpa_cli} -i ${sta2_wifi_interface}
+
+staut bash shell
+    Switch Connection    ${staut_bash}
+
+sta1 bash shell
+    Switch Connection    ${sta1_bash}
+
+sta2 bash shell
+    Switch Connection    ${sta2_bash}
+
+lanpc bash shell
+    Switch Connection    ${lanpc_bash}
+
+staut wpa_cli shell
+    Switch Connection    ${staut_wpa_cli}
+
+sta1 wpa_cli shell
+    Switch Connection    ${sta1_wpa_cli}
+
+sta2 wpa_cli shell
+    Switch Connection    ${sta2_wpa_cli}
+
+

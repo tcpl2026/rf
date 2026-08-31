@@ -1,0 +1,93 @@
+*** Keywords ***
+start iperf server
+    [Arguments]        ${port}=9001
+    Execute Command    sudo pkill -9 iperf3
+    Execute Command    iperf3 -s -p ${port} -i 1 -D
+
+tp match result line
+    [Arguments]        ${iperf_result}
+    ${match_line}=     Get Lines Matching Regexp    ${iperf_result}    SUM.*\\ 0.00-[23]\\d.*receiver    partial_match=true
+    RETURN             ${match_line}
+
+start iperf client
+    [Arguments]        ${dst}                       ${pair}            ${port}              ${time}     ${proto}   
+    Execute Command    sudo pkill -9 iperf3
+    IF                 '${proto}' == 'tcp'
+                       ${output}=         Execute Command              iperf3 -i 1 -t ${time} -b 100M -P ${pair} -c ${dst} -p ${port}
+    ELSE IF            '${proto}' == 'udp'
+                       ${output}=         Execute Command              iperf3 -i 1 -t ${time} -b 100M -P ${pair} -c ${dst} -p ${port} -u
+    END
+    Log                ${output}
+    ${tp}=             tp match result line         ${output}
+    RETURN             ${tp}
+
+staut throughput test
+    [Arguments]           ${pair}    ${staut_wlan_ip}
+    lanpc bash shell
+    start iperf server    port=9001
+    staut bash shell
+    ${tcp_tx}=            start iperf client           dst=${lanpc_lan_ip}    pair=${pair}    port=9001    time=30    proto=tcp
+    Log                   TCP Tx: ${tcp_tx}
+    ${udp_tx}=            start iperf client           dst=${lanpc_lan_ip}    pair=${pair}    port=9001    time=30    proto=udp
+    Log                   UDP Tx: ${udp_tx}
+
+    staut bash shell
+    start iperf server    port=9001
+    lanpc bash shell
+    ${tcp_rx}=            start iperf client           dst=${staut_wlan_ip}    pair=${pair}    port=9001    time=30    proto=tcp
+    Log                   TCP Rx: ${tcp_rx}
+    ${udp_rx}=            start iperf client           dst=${staut_wlan_ip}    pair=${pair}    port=9001    time=30    proto=udp
+    Log                   UDP Rx: ${udp_rx}
+
+    Append To File        ${throughput_record_file}    UDP Rx: ${udp_rx}\n
+    Append To File        ${throughput_record_file}    UDP Tx: ${udp_tx}\n\n
+    Append To File        ${throughput_record_file}    TCP Rx: ${tcp_rx}\n
+    Append To File        ${throughput_record_file}    TCP Tx: ${tcp_tx}\n\n
+
+run throughput test
+    [Arguments]                             ${band}    ${bw}    ${channel}    ${iperf_pair}
+    wifi setting for throughput test        ${band}    ${bw}    ${channel}
+    staut wifi manually reconnect
+    staut print wifi status
+    ${ip}=                                  staut get ip
+    FOR                                     ${index}                 IN RANGE                     ${throughput_test_times}
+                                            ${x}=                    Evaluate                     ${index} + 1
+                                            Append To File           ${throughput_record_file}    Test Run ${x}:\n
+                                            staut throughput test    ${iperf_pair}                ${ip}
+    END
+
+sap throughput test
+    [Arguments]           ${pair}
+    sta1 bash shell
+    start iperf server    port=9001
+    staut bash shell
+    ${tcp_tx}=            start iperf client           dst=${sta1_wifi_ip1}    pair=${pair}    port=9001    time=30    proto=tcp
+    Log                   TCP Tx: ${tcp_tx}
+    ${udp_tx}=            start iperf client           dst=${sta1_wifi_ip1}    pair=${pair}    port=9001    time=30    proto=udp
+    Log                   UDP Tx: ${udp_tx}
+
+    staut bash shell
+    start iperf server    port=9001
+    sta1 bash shell
+    ${tcp_rx}=            start iperf client           dst=${staut_wifi_ip1}    pair=${pair}    port=9001    time=30    proto=tcp
+    Log                   TCP Rx: ${tcp_rx}
+    ${udp_rx}=            start iperf client           dst=${staut_wifi_ip1}    pair=${pair}    port=9001    time=30    proto=udp
+    Log                   UDP Rx: ${udp_rx}
+
+    Append To File        ${throughput_record_file}    UDP Rx: ${udp_rx}\n
+    Append To File        ${throughput_record_file}    UDP Tx: ${udp_tx}\n\n
+    Append To File        ${throughput_record_file}    TCP Rx: ${tcp_rx}\n
+    Append To File        ${throughput_record_file}    TCP Tx: ${tcp_tx}\n\n
+
+sap run throughput test
+    [Arguments]                             ${band}    ${mode}    ${security}    ${ch}    ${iperf_pair}
+    staut start sap                         ${band}    ${mode}    ${security}    ${ch}
+    staut set static ip1
+    sta1 connection to sap                  ${security}
+    sta1 set static ip1
+    sta1 print wifi status
+    FOR                                     ${index}                 IN RANGE                     ${throughput_test_times}
+                                            ${x}=                    Evaluate                     ${index} + 1
+                                            Append To File           ${throughput_record_file}    Test Run ${x}:\n
+                                            sap throughput test      ${iperf_pair}
+    END

@@ -1,0 +1,112 @@
+*** Keywords ***
+Get Go MAC
+    [Arguments]                    ${input}
+    ${ret}=                        Get Lines Containing String       ${input}          go_dev_addr
+    Log                            ${ret}
+    ${ret}=                        Split String                      ${ret}            go_dev_addr=
+    ${mac}=                        Get From List	             ${ret}            1
+    RETURN                         ${mac}
+    
+Get P2P Interface
+    ${output}=                     Execute Command                   ${START_WPA_CLI_INTERFACE_COMMAND}
+    Log                            ${output}
+    ${p2p_interface}=              Get Lines Containing String       ${output}          p2p-wlan0-
+    Log                            ${p2p_interface}
+    RETURN                         ${p2p_interface}
+
+Get Hostname
+    ${hostname}=                   Execute Command                   hostname
+    Log                            ${hostname}
+
+Enter Wpa_cli
+    Sleep                          0.5s
+    Write                          ${START_WPA_CLI_COMMAND}
+
+Quit Wpa_cli
+    Write                          quit
+    Sleep                          0.5s
+
+Get Interfaces
+    Enter Wpa_cli
+    Write                          interface
+    ${interfaces_list}=            Read                              delay=0.5s
+    Log                            ${interfaces_list}
+    Quit Wpa_cli
+
+Start Wpa_supplicant
+    ${output}                      Execute Command                  sudo killall -9 wpa_supplicant
+    Log                            ${output}
+    ${output}                      Execute Command                  sudo killall -9 wpa_cli
+    Log                            ${output}
+    ${output}                      Execute Command                  ${START_WPA_SUPPLICANT_COMMAND}
+    Log                            ${output}
+
+Login Test PC and Start Wpa_supplicant
+    Open Connection                ${HOST1}                         alias=${HOST1_ALIAS}
+    Login                          ${USERNAME}                      ${PASSWORD}
+    Start Wpa_supplicant
+
+    Open Connection                ${HOST2}                         alias=${HOST2_ALIAS}
+    Login                          ${USERNAME}                      ${PASSWORD}
+    Start Wpa_supplicant
+
+Stop Wpa_supplicant and Close All Connections
+    Switch Connection              ${HOST1_ALIAS}
+    Execute Command                sudo killall -9 wpa_supplicant
+    Execute Command                sudo killall -9 wpa_cli
+    ${output}                      Execute Command                  ps aux | grep supplicant
+    Log                            ${output}
+
+    Switch Connection              ${HOST2_ALIAS}
+    Execute Command                sudo killall -9 wpa_supplicant
+    Execute Command                sudo killall -9 wpa_cli
+    ${output}                      Execute Command                  ps aux | grep supplicant
+    Log                            ${output}
+    Close All Connections
+
+Remove P2P Group
+    Switch Connection              ${HOST1_ALIAS}
+    Enter Wpa_cli
+    Write                          interface wlan0
+    Write                          p2p_group_remove *
+    Write                          interface
+    ${output}=                     Read                          delay=0.5s
+    Log                            ${output}
+    Quit Wpa_cli
+
+    Switch Connection              ${HOST2_ALIAS}
+    Enter Wpa_cli
+    Write                          interface wlan0
+    Write                          p2p_group_remove *
+    Write                          interface
+    ${output}=                     Read                          delay=0.5s
+    Log                            ${output}
+    Quit Wpa_cli
+
+Ping and Run Iperf
+    [Arguments]                    ${p2p_interface1}             ${p2p_interface2}
+
+    Switch Connection              ${HOST1_ALIAS}
+    Execute Command                sudo ifconfig ${p2p_interface1} ${HOST1_P2P_IP}
+    ${output}=                     Execute Command                                       sudo ifconfig ${p2p_interface1}
+    Log                            ${output}
+    Execute Command                sudo killall -9 iperf3 ; iperf3 -s -i 1 -p 9001 -D
+
+    Switch Connection              ${HOST2_ALIAS}
+    ${output}=                     Read                                                  delay=0.5s
+    Log                            ${output}
+    Execute Command                sudo ifconfig ${p2p_interface2} ${HOST2_P2P_IP}
+    ${output}=                     Execute Command                                       sudo ifconfig ${p2p_interface2}
+    Log                            ${output}
+
+    ${ping_result}=                Execute Command                                       ping ${HOST1_P2P_IP} -I ${p2p_interface1} -c ${PING_COUNT}
+    Log                            ${ping_result}
+    Should Contain                 ${ping_result}                                        bytes from ${HOST1_P2P_IP} 
+
+    ${iperf_tx_result}=            Execute Command                                       iperf3 -t ${IPERF_RUN_TIME} -i 1 -c ${HOST1_P2P_IP} -p 9001 -P 4
+    Log                            ${iperf_tx_result}
+    Should Contain                 ${iperf_tx_result}                                    connected
+    ${iperf_rx_result}=            Execute Command                                       iperf3 -t ${IPERF_RUN_TIME} -i 1 -c ${HOST1_P2P_IP} -p 9001 -P 4 -R
+    Log                            ${iperf_rx_result}
+    Should Contain                 ${iperf_rx_result}                                    connected
+

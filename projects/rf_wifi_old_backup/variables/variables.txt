@@ -1,0 +1,47 @@
+*** Variables ***
+${staut_host}                              192.168.191.131
+${sta1_host}                               192.168.191.130
+${sta2_host}                               192.168.191.130
+
+${staut_wpa_cli}                           staut_wpa_cli
+${staut_bash}                              staut_bash
+${sta1_wpa_cli}                            sta1_wpa_cli
+${sta1_bash}                               sta1_bash
+${sta2_wpa_cli}                            sta2_wpa_cli
+${sta2_bash}                               sta2_bash
+
+${username}                                scm
+${password}                                qwerasdf
+
+${hostapd_dir}                             /home/scm/hostap/hostapd
+${wpa_supplicant_dir}                      /home/scm/hostap/wpa_supplicant
+
+${staut_sta_interface}                     wlan0
+${staut_sap_interface}                     ap0
+${sta1_wlan_interface}                     wlan0
+${sta2_wlan_interface}                     wlan0
+
+@{2g_channel_list}                         2412    2417    2422    2427    2432    2437    2442   2447    2452    2457    2462
+@{5g_channel_list}                         5180    5200    5220    5240    5745    5765    5785   5805
+
+${staut_ip1}                               192.168.22.1
+${staut_ip2}                               192.168.55.1
+${sta1_ip1}                                192.168.22.100
+${sta1_ip2}                                192.168.55.100
+${sta2_ip1}                                192.168.22.200
+${sta2_ip2}                                192.168.55.200
+
+${ping_count}                              5
+${iperf_run_time}                          5
+
+${hostapd_conf}                            ${hostapd_dir}/sap.conf
+${wpa_supplicant_conf}                     ${wpa_supplicant_dir}/sta.conf
+
+${sap_ssid}                                rf-sap
+
+${sap_wpa2psk_passphrase}                  qwerasdf
+${sap_wpa_rekey_interval}                  3600
+
+${hostapd_ctrl_interface}                  /var/run/hostapd
+${wpa_supplicant_ctrl_interface}           /var/run/wpa_supplicant
+

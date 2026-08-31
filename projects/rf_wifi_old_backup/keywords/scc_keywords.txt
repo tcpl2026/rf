@@ -1,0 +1,211 @@
+*** Keywords ***
+start 2g he20 ccmp sap
+    [Arguments]                              ${channel}
+    ssh login                                ${staut_host}
+
+    remove conf file                         ${hostapd_conf}
+
+    add content to hostapd conf file         "interface=${staut_sap_interface}"
+    add content to hostapd conf file         "ctrl_interface=${hostapd_ctrl_interface}"
+    add content to hostapd conf file         "driver=nl80211"
+
+    add content to hostapd conf file         "ssid=${sap_ssid}"
+    add content to hostapd conf file         "ignore_broadcast_ssid=0"
+
+    add content to hostapd conf file         "hw_mode=g"
+    add content to hostapd conf file         "channel=${channel}"
+
+    add content to hostapd conf file         "wmm_enabled=1"
+
+    add content to hostapd conf file         "ieee80211n=1"
+    add content to hostapd conf file         "ht_capab=[SHORT-GI-20][LDPC]"
+
+    add content to hostapd conf file         "ieee80211ax=1"
+    add content to hostapd conf file         "he_bss_color=1"
+
+    add content to hostapd conf file         "auth_algs=1"
+    add content to hostapd conf file         "wpa=2"
+    add content to hostapd conf file         "wpa_key_mgmt=WPA-PSK"
+    add content to hostapd conf file         "wpa_pairwise=CCMP"
+    add content to hostapd conf file         "wpa_passphrase=${sap_wpa2psk_passphrase}"
+    add content to hostapd conf file         "wpa_group_rekey=${sap_wpa_rekey_interval}"
+
+    ${output}=                               Execute Command                                   cat ${hostapd_conf}
+    Log                                      ${output}
+
+    kill process                             ${hostapd_conf}
+    start sap                                ${hostapd_conf}
+    Close Connection
+
+start 2g ht20 ccmp sap
+    [Arguments]                              ${channel}
+    ssh login                                ${staut_host}
+
+    remove conf file                         ${hostapd_conf}
+
+    add content to hostapd conf file         "interface=${staut_sap_interface}"
+    add content to hostapd conf file         "ctrl_interface=${hostapd_ctrl_interface}"
+    add content to hostapd conf file         "driver=nl80211"
+
+    add content to hostapd conf file         "ssid=${sap_ssid}"
+    add content to hostapd conf file         "ignore_broadcast_ssid=0"
+
+    add content to hostapd conf file         "hw_mode=g"
+    add content to hostapd conf file         "channel=${channel}"
+
+    add content to hostapd conf file         "wmm_enabled=1"
+
+    add content to hostapd conf file         "ieee80211n=1"
+    add content to hostapd conf file         "ht_capab=[SHORT-GI-20][LDPC]"
+
+    add content to hostapd conf file         "auth_algs=1"
+    add content to hostapd conf file         "wpa=2"
+    add content to hostapd conf file         "wpa_key_mgmt=WPA-PSK"
+    add content to hostapd conf file         "wpa_pairwise=CCMP"
+    add content to hostapd conf file         "wpa_passphrase=${sap_wpa2psk_passphrase}"
+    add content to hostapd conf file         "wpa_group_rekey=${sap_wpa_rekey_interval}"
+
+    ${output}=                               Execute Command                                   cat ${hostapd_conf}
+    Log                                      ${output}
+
+    kill process                             ${hostapd_conf}
+    start sap                                ${hostapd_conf}
+    Close Connection
+
+start ccmp sta
+    [Arguments]              ${host}               ${ssid}      ${sta_wlan_interface}
+    ssh login                ${host}
+
+    remove conf file         ${wpa_supplicant_conf}
+
+    add content to wpa_supplicant conf file        "ctrl_interface=${wpa_supplicant_ctrl_interface}"
+    add content to wpa_supplicant conf file        "network={"
+    add content to wpa_supplicant conf file        'ssid="${ssid}"'
+    add content to wpa_supplicant conf file        'psk="${sap_wpa2psk_passphrase}"'
+    add content to wpa_supplicant conf file        "}" 
+
+    ${output}=               Execute Command               cat ${wpa_supplicant_conf}
+    Log                      ${output}
+
+    kill process             ${wpa_supplicant_conf}
+    start sta                ${sta_wlan_interface}               ${wpa_supplicant_conf}
+
+    Close Connection
+
+ssh login
+    [Arguments]             ${host}
+    Open Connection         ${host}
+    Login                   ${username}                      ${password}
+
+start sap
+    [Arguments]             ${hostapd_conf}
+    Execute Command         sudo ${hostapd_dir}/hostapd ${hostapd_conf} -B
+
+start sta
+    [Arguments]             ${wlan_interface}           ${conf_file}
+    Execute Command         sudo ${wpa_supplicant_dir}/wpa_supplicant -i ${wlan_interface} -c ${conf_file} -B
+
+check sta status
+    [Arguments]                                    ${host}                     ${wlan_interface}
+    ssh login                                      ${host}
+    Write                                          sudo ${wpa_supplicant_dir}/wpa_cli -i ${wlan_interface}
+    Write                                          status
+    Set Client Configuration                       timeout=10 seconds
+    ${output}=                                     Read Until Regexp            [=-]CONNECTED
+    Log                                            ${output}
+    Write                                          status
+    ${status}=                                     Read                         delay=0.5s
+    Log                                            ${status}
+    Close Connection
+
+config ip
+    [Arguments]             ${host}                ${interface}             ${ip}
+    ssh login               ${host}
+    Execute Command         sudo ip addr flush dev ${interface} 
+    ${output}=              Execute Command        sudo ifconfig ${interface}
+    Log                     ${output}
+    Execute Command         sudo ifconfig ${interface} ${ip}
+    ${output}=              Execute Command        sudo ifconfig ${interface}
+    Log                     ${output}
+    Should Contain          ${output}              ${ip}
+
+    Close Connection
+
+ping test
+    [Arguments]             ${host}                ${src_interface}          ${dst_ip}
+    ssh login               ${host}
+    ${output}=              Execute Command        ping -I ${src_interface} ${dst_ip} -c ${ping_count}
+    Log                     ${output}
+    Should Contain          ${output}              bytes from ${dst_ip}
+
+    Close Connection
+
+start iperf3 server
+    [Arguments]             ${host}               ${port}
+    ssh login               ${host}
+    Execute Command         sudo pkill -9 iperf3
+    Execute Command         iperf3 -s -p ${port} -D
+    Close Connection
+
+start iperf3 client
+    [Arguments]             ${host}             ${bind_ip}     ${dst_ip}     ${dst_port}
+    ssh login               ${host}
+    Execute Command         sudo pkill -9 iperf3
+    ${output}=              Execute Command     iperf3 -i 1 -P 10 -t ${iperf_run_time} -B ${bind_ip} -c ${dst_ip} -p ${dst_port}
+    Log                     ${output}
+    Should Contain          ${output}           connected
+
+    Close Connection
+    
+start iperf3 client bidir
+    [Arguments]             ${host}             ${bind_ip}     ${dst_ip}     ${dst_port}
+    ssh login               ${host}
+    Execute Command         sudo pkill -9 iperf3
+    ${output}=              Execute Command     iperf3 -i 1 -P 10 -t ${iperf_run_time} -B ${bind_ip} -c ${dst_ip} -p ${dst_port} --bidir
+    Log                     ${output}
+    Should Contain          ${output}           connected
+
+    Close Connection
+
+kill process
+    [Arguments]             ${conf_file_in_process}
+    Execute Command         sudo pkill -f -9 ${conf_file_in_process}
+
+remove conf file
+    [Arguments]             ${file}
+    Execute Command         sudo rm -f ${file}
+
+add content to hostapd conf file
+    [Arguments]             ${content}
+    Execute Command         echo ${content} >> ${hostapd_conf}
+
+add content to wpa_supplicant conf file
+    [Arguments]             ${content}
+    Execute Command         echo ${content} >> ${wpa_supplicant_conf}
+
+create sap interface
+    ssh login               ${staut_host}
+    Execute Command         sudo iw dev ${staut_sta_interface} interface add ${staut_sap_interface} type __ap
+    ${output}=              Execute Command                    ifconfig -a
+    Log                     ${output}
+    Close Connection
+
+remove sap interface
+    ssh login               ${staut_host}
+    Execute Command         sudo iw dev ${staut_sap_interface} del
+    ${output}=              Execute Command                    ifconfig -a
+    Log                     ${output}
+    Close Connection
+
+ping and run iperf3
+    [Arguments]                            ${host1}                     ${host1_interface}      ${host1_ip}
+    ...                                    ${host2}                     ${host2_interface}      ${host2_ip}
+
+    ping test                              ${host1}                     ${host1_interface}      ${host2_ip}
+    ping test                              ${host2}                     ${host2_interface}      ${host1_ip}
+
+    start iperf3 server                    ${host1}                     9001
+    start iperf3 client                    ${host2}                     ${host2_ip}             ${host1_ip}      9001
+    start iperf3 server                    ${host2}                     9001
+    start iperf3 client                    ${host1}                     ${host1_ip}             ${host2_ip}      9001
+
