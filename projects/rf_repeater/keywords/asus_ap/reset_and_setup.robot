@@ -1,9 +1,9 @@
 *** Settings ***
-Resources    ../variables/variables.robot
-Resources    asus_router_config.robot
+Resources    ../../variables/variables.robot
+Resources    common.robot
 
 *** Keywords ***
-Reset ASUS Router
+Reset ASUS AP
     Click Element                                 id:Advanced_OperationMode_Content_menu
     Wait Until Page Contains Element              id:Advanced_SettingBackup_Content_tab
     Click Element                                 id:Advanced_SettingBackup_Content_tab
@@ -14,7 +14,7 @@ Reset ASUS Router
     Handle Alert 	                          action=ACCEPT
     Wait Until Page Contains Element              id:welcomeTitle                               timeout=120
 
-Setup ASUS Router
+Setup ASUS AP
     Page Should Contain Element                   id:welcomeTitle
     set language to english
 
@@ -46,21 +46,30 @@ Setup ASUS Router
 
     Wait Until Page Contains Element              id:NM_connect_title          timeout=60
 
-set 2g 20m ch1 5g 80m ch36
-    goto wireless general page
-    set band to 2g
-    set bandwidth                                 20m
-    set channel                                   1
-    
-    apply settings
-    
-    set band to 5g
-    Unselect Checkbox                             id:enable_160mhz
-    set channel                                   36/80
+ASUS AP Enable SSH Server
+    Login ASUS AP
 
-    apply settings
+    Click Element                                 id:Advanced_OperationMode_Content_menu
+    Wait Until Page Contains Element              id:Advanced_System_Content_tab
+    Click Element                                 id:Advanced_System_Content_tab
+    Wait Until Page Contains Element              id:sshd_enable_tr
+    ${ssh_allowed}                                Get Selected List Label         name:sshd_enable
+    Log                                           ${ssh_allowed}
+    IF                                            '${ssh_allowed}' != 'LAN only'
+                                                  Select From List By value       name:sshd_enable    2
+                                                  Sleep                           1s
+    END
+    ${ssh_port}                                   Get Value                       id:sshd_port
+    Log                                           ${ssh_port}
+    IF                                            '${ssh_port}' != '22'
+                                                  Input Text                      id:sshd_port    22
+    END
+                                                  
+    Apply Settings
 
-Reset And Setup ASUS Router
+    Logout ASUS AP
+
+Reset And Setup ASUS AP
     Open Browser    url=${AP_URL}    browser=${BROWSER}
     Maximize Browser Window
     Sleep    1s
@@ -70,17 +79,16 @@ Reset And Setup ASUS Router
         IF    '${output}' == 'None'
             Log    ASUS AP is not in factory default state, reset it firstly.
             Close Browser
-            login asus router
-            reset asus router
+            Login ASUS AP
+            Reset ASUS AP
         END
     EXCEPT
-        LOG    ASUS AP is already in factory default state, start to setup.
+        Log    ASUS AP is already in factory default state, start to setup.
     END
 
-    setup asus router
-    set 2g 20m ch1 5g 80m ch36
+    Setup ASUS AP
     
-    logout asus router
+    Logout ASUS AP
 
-    asus router enable ssh server
+    ASUS AP Enable SSH Server
 

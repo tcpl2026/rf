@@ -1,3 +1,7 @@
+*** Settings ***
+Resources    common.robot
+
+*** Keywords ***
 Enable WiFi6 Mode
     [Arguments]    ${band}
     Set Band    ${band}
