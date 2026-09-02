@@ -1,6 +1,5 @@
 *** Settings ***
-Resources    ../../variables/variables.robot
-Resources    common.robot
+Resource    ../variables/variables.robot
 
 *** Keywords ***
 Reset ASUS AP
@@ -22,27 +21,34 @@ Setup ASUS AP
     Sleep                                         0.5s
     Click Element                                 id:desktop_manual_applyBtn
     Sleep                                         0.5s
-    IF                                            '${ap_model}' == 'rt-ax88u'
-                                                  Click Element                                 xpath: //*[contains(text(), "WAN Port")]
-    Sleep                                         0.5s
+    # for rt-ax88u
+    TRY
+                                                  Click Element                                 xpath: //*[contains(text(), "WAN Port")] 
+                                                  Sleep                                         0.5s
+    EXCEPT
+                                                  Log    continue setting
     END
     Click Element                                 xpath: //*[contains(text(), "Automatic IP")]
     Sleep                                         0.5s
     Click Element                                 xpath: //*[contains(text(), "Separate 2.4 GHz and 5 GHz")]
     Sleep                                         1s
-    Input Text                                    id:wireless_ssid_0           ${ssid_2g}
-    Input Password                                id:wireless_key_0            ${passphrase}
-    Input Text                                    id:wireless_ssid_1           ${ssid_5g}
-    Input Password                                id:wireless_key_1            ${passphrase}
+    Input Text                                    id:wireless_ssid_0           ${AP_2G_SSID}
+    Input Password                                id:wireless_key_0            ${AP_PSK_KEY}
+    Input Text                                    id:wireless_ssid_1           ${AP_5G_SSID}
+    Input Password                                id:wireless_key_1            ${AP_PSK_KEY}
     Sleep                                         1s
     Click Element                                 //*[@class='desktop_applyBtn btn_wireless_apply']
     Sleep                                         1s
-    Input Text                                    id:http_username             ${ap_user}
-    Input Password                                id:http_passwd               ${ap_password}
-    Input Password                                id:http_passwd_confirm       ${ap_password}
+    Input Text                                    id:http_username             ${AP_USER}
+    Input Password                                id:http_passwd               ${AP_PWD}
+    Input Password                                id:http_passwd_confirm       ${AP_PWD}
     Click Element                                 //*[@class='desktop_applyBtn btn_login_apply']      
     Sleep                                         1s
-    Handle Alert 	                          action=ACCEPT
+    TRY
+                                                  Handle Alert 	                          action=ACCEPT
+    EXCEPT
+                                                  Log    Continue setup
+    END
 
     Wait Until Page Contains Element              id:NM_connect_title          timeout=60
 
@@ -74,9 +80,8 @@ Reset And Setup ASUS AP
     Maximize Browser Window
     Sleep    1s
     TRY
-        ${output}=    Page Should Contain Element    id:login_username
-        Log    ${output}
-        IF    '${output}' == 'None'
+        ${count}=    Get Element Count    id:login_username
+        IF    ${count} > 0
             Log    ASUS AP is not in factory default state, reset it firstly.
             Close Browser
             Login ASUS AP
@@ -91,4 +96,55 @@ Reset And Setup ASUS AP
     Logout ASUS AP
 
     ASUS AP Enable SSH Server
+
+Login ASUS AP
+    Open Browser    url=${AP_URL}    browser=${BROWSER}
+    Maximize Browser Window
+    Wait Until Page Contains Element    id:login_username
+    Input Text    id:login_username    ${AP_USER}
+    Input Password    name:login_passwd     ${AP_PWD}
+    TRY
+        Click Element    class:button
+    EXCEPT
+        Log    click button failed, try another element
+        TRY
+            Click Element    xpath://*[@id="button"]
+        EXCEPT
+            Log    click button failed
+        END
+    END
+
+    Wait Until Page Contains Element    id:NM_connect_title
+
+    Set Language To English
+
+Set Language To English
+    ${language}    Get Text    id:selected_lang
+    Log    ${language}
+    IF    '${language}' != 'English'
+        Mouse Over    id:selected_lang
+        Sleep    1s
+        Click Element    xpath: //*[contains(text(), "English")]
+        Sleep    3s
+    END
+
+Logout ASUS AP
+    Click Element                         xpath: //*[contains(text(), "Logout")]
+    Close Browser 
+
+Apply Settings
+    Click Button    xpath://input[@value="Apply"]
+    TRY
+        Handle Alert    action=ACCEPT    timeout=0.5 s
+    EXCEPT
+        Log    No alert box
+    END
+    TRY
+        Handle Alert    action=ACCEPT    timeout=0.5 s
+    EXCEPT
+        Log    No alert box
+    END
+    Sleep    0.5s
+    Wait Until Element Is Not Visible    xpath://span[contains(text(),'Applying Settings')]    timeout=30
+    Sleep    3s
 

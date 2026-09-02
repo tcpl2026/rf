@@ -7,7 +7,7 @@ ${AP_PWD}                                  12345678
 ${BROWSER}                                 Chrome
 
 ${AP_2G_SSID}                              56u2g
-${AP_5G_SSID}                              56u2g
+${AP_5G_SSID}                              56u5g
 
 ${AP_PSK_KEY}                              passphrase
 
