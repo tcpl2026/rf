@@ -3,9 +3,6 @@ Resources    common.robot
 
 *** Keywords ***
 Enable WiFi6 Mode
-    [Arguments]    ${band}
-    Set Band    ${band}
-
     TRY
         ${wireless_mode}=    Get Selected List Label    name:wl_nmode_x
         Log    ${wireless_mode}
@@ -30,22 +27,7 @@ Enable WiFi6 Mode
     Should Be Equal    ${wireless_mode}    Auto
     Should Be Equal    ${wifi6_switch}    Enable
 
-asus router enable wifi6
-    login asus router
-    goto wireless general page
-
-    enable wifi6 mode                             2g
-    enable wifi6 mode                             5g
-
-    logout asus router
-    
-
-asus router enable wifi5
-    login asus router
-    goto wireless general page
-
-    set band to 5g
-
+Enable WiFi5 Mode
     TRY
                                                   ${wireless_mode}=            Get Selected List Label        name:wl_nmode_x
                                                   Log                          ${wireless_mode}
@@ -70,8 +52,6 @@ asus router enable wifi5
     Should Be Equal                               ${wireless_mode}               Auto
     Should Be Equal                               ${wifi6_switch}                Disable
 
-    logout asus router
-
 asus router enable wifi4
     asus router enable ssh server
     Sleep                                         5s
@@ -85,7 +65,7 @@ asus router enable wifi4
 
     Close Connection
 
-enable legacy mode
+Enable Legacy Mode
     [Arguments]                                   ${band}
     set band                                      ${band}
 
@@ -104,13 +84,4 @@ enable legacy mode
     ${wireless_mode}=                             Get Selected List Label        name:wl_nmode_x
     Log                                           ${wireless_mode}
     Should Be Equal                               ${wireless_mode}               Legacy
-
-asus router enable legacy
-    login asus router
-    goto wireless general page
-
-    enable legacy mode    2g
-    enable legacy mode    5g
-
-    logout asus router
     

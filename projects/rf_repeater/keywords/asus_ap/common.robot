@@ -61,6 +61,10 @@ Set Band
         END
     END
 
+Set SSID
+    [Arguments]    ${ssid}
+    Input Text    id:wl_ssid    ${ssid}
+
 Apply Settings
     Click Button    xpath://input[@value="Apply"]
     TRY

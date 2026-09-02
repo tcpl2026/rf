@@ -9,7 +9,7 @@ ${BROWSER}                                 Chrome
 ${AP_2G_SSID}                              56u2g
 ${AP_5G_SSID}                              56u2g
 
-${AP_PSK_KEY}                              qwerasdf
+${AP_PSK_KEY}                              passphrase
 
 ${STA1_CONTROL_IP}                         10.12.10.229
 ${STA1_USER}                               scm

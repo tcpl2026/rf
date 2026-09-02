@@ -1,6 +1,6 @@
-# SeleniumLibrary: asus router
+# asus router的操作
 
-## 处理applying
+## seleniumlibrary: 处理applying
 
 ```
 Wait Until Page Does Not Contain              \% Applying Settings                                   timeout=30
@@ -25,7 +25,7 @@ Wait Until Element Is Not Visible              xpath://span[contains(text(),'App
 Wait Until Page Does Not Contain Element       xpath://span[contains(text(),'Applying Settings')]    timeout=30
 ```
 
-## Wait Until Element Is Not Visible 和 Wait Until Page Does Not Contain Element的区别
+## seleniumlibrary: Wait Until Element Is Not Visible 和 Wait Until Page Does Not Contain Element的区别
 
 ```
 Wait Until Element Is Not Visible
