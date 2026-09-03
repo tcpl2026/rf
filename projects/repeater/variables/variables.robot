@@ -1,9 +1,8 @@
 *** Variables ***
-${AP_MODEL}                                rt-ax56u
 ${AP_IP}                                   192.168.50.1
 ${AP_URL}                                  http://${AP_IP}
 ${AP_USER}                                 admin
-${AP_PWD}                                  12345678
+${AP_PWD}                                  @a12345678
 ${BROWSER}                                 Chrome
 
 ${AP_2G_SSID}                              56u2g

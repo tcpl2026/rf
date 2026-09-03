@@ -7,7 +7,7 @@ Config ASUS AP
     ...                5GHz 20m channel: 36-161
     ...                5GHz 40M channel: 36l 40u 44l 48u 149l 153u 157l 161u
     ...                5GHz 80M channel: 36/80 40/80 44/80 48/80 149/80 153/80 157/80 161/80
-    [Arguments]    ${band}    ${ssid}    ${bw}    ${channel}    ${wifi_mode}=ax    ${security_mode}=${EMPTY}    ${key}=${AP_PSK_KEY}
+    [Arguments]    ${band}    ${ssid}    ${bw}    ${channel}    ${wifi_mode}=ax    ${security_mode}=${EMPTY}    ${key}=${EMPTY}
 
     IF    '${band}' == '2g'
         ${interface}=    Set Variable    wl0
@@ -86,9 +86,9 @@ Config ASUS AP
         IF    '${current}' != 'psk2'
             Execute Command    nvram set ${interface}_auth_mode_x=psk2
         END
-        IF    ${key}
+        IF    $key
             ${current}=    Execute Command    nvram get ${interface}_wpa_psk
-            IF    '${current}' != '${key}'
+            IF    '${current}' != $key
                 Execute Command    nvram set ${interface}_wpa_psk=${key}
             END
         END
@@ -96,5 +96,22 @@ Config ASUS AP
 
     Execute Command    nvram commit
     Execute Command    service restart_wireless
+
+    ${current_ssid}=    Execute Command    nvram get ${interface}_ssid
+    ${current_bandwidth}=    Execute Command    nvram get ${interface}_bw
+    ${current_channel}=    Execute Command    nvram get ${interface}_chanspec
+    ${current_nmode}=    Execute Command    nvram get ${interface}_nmode_x
+    ${current_11ax}=    Execute Command    nvram get ${interface}_11ax
+    ${current_security}=    Execute Command    nvram get ${interface}_auth_mode_x
+
+    Should Be Equal As Strings    ${current_ssid}    ${ssid}
+    Should Be Equal As Strings    ${current_channel}    ${channel}
+
+    Log To Console    SSID: ${current_ssid}
+    Log To Console    Bandwidth: ${current_bandwidth}
+    Log To Console    Channel: ${current_channel}
+    Log To Console    nmode: ${current_nmode}
+    Log To Console    11ax: ${current_11ax}
+    Log To Console    security: ${current_security}
 
     Close Connection
