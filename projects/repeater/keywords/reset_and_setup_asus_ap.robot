@@ -100,6 +100,7 @@ Reset And Setup ASUS AP
 Login ASUS AP
     Open Browser    url=${AP_URL}    browser=${BROWSER}
     Maximize Browser Window
+    Sleep    1s
     Wait Until Page Contains Element    id:login_username
     Input Text    id:login_username    ${AP_USER}
     Input Password    name:login_passwd     ${AP_PWD}
