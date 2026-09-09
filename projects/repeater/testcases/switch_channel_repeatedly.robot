@@ -61,7 +61,7 @@ Switch channel repeatedly
             Sleep    20s
 
             # 华硕路由器的bug: 设置了一定次数后, 配置不再生效, 周期reset后重新配置避免这个问题
-            IF    ${i} % 100 == 0
+            IF    ${i} % 20 == 0
                 Reset And Setup ASUS AP
             END
         EXCEPT
