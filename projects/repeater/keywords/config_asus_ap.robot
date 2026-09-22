@@ -15,8 +15,16 @@ Config ASUS AP
         ${interface}=    Set Variable    wl1
     END
 
-    Open Connection    ${AP_IP}
-    Login    ${AP_USER}    ${AP_PWD}
+    FOR    ${i}    IN RANGE    3
+        TRY
+            Open Connection    ${AP_IP}
+            Login    ${AP_USER}    ${AP_PWD}
+            BREAK
+        EXCEPT
+            Log To Console    ssh login asus router failed, wait 5 seconds and retry
+            Sleep    5s
+        END
+    END
 
     # SSID
     ${current}=    Execute Command    nvram get ${interface}_ssid
