@@ -25,6 +25,3 @@ Serial PC Read
     ${OUTPUT}=    read
     RETURN    ${OUTPUT}
 
-
-
-
