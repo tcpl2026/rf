@@ -1,15 +1,14 @@
 *** Settings ***
-Library    SeleniumLibrary
+Library    SeleniumLibrary    page_load_timeout=00:00:20    run_on_failure=NOTHING
+# 这里设置run_on_failure=NOTHING, 不然因为默认失败时会截图，卡在Capture Page Screenshot, 导致page_load_timeout看上去没生效 
 
 *** Test Cases ***
 Test Case 1
-    Set Selenium Page Load Timeout    30s
     FOR    ${i}    IN RANGE    1    999999
         Log To Console    \n========= Run time ${i} =========\n
         Close All Browsers
         TRY
             Open Browser    http://10.12.10.82    Chrome
-            # Wait Until Page Contains Element    id=startStopBtn    timeout=10s
             Wait Until Element Is Visible    id=startStopBtn    timeout=10s
             Click Button    id=startStopBtn
             Sleep    20s
