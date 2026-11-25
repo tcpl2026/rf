@@ -3,17 +3,17 @@ Library    SeleniumLibrary
 
 *** Test Cases ***
 Test Case 1
-    Set Selenium Timeout    30s
+    Set Selenium Page Load Timeout    30s
     FOR    ${i}    IN RANGE    1    999999
+        Log To Console    \n========= Run time ${i} =========\n
         Close All Browsers
         TRY
-            Open Browser    http://10.12.10.82/speedtest    Chrome
+            Open Browser    http://10.12.10.82    Chrome
             # Wait Until Page Contains Element    id=startStopBtn    timeout=10s
             Wait Until Element Is Visible    id=startStopBtn    timeout=10s
             Click Button    id=startStopBtn
             Sleep    20s
         EXCEPT
             Log To Console    Ignore error, continue test
-            Close All Browsers
         END
     END
